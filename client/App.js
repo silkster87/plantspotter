@@ -6,6 +6,7 @@ import backgroundImageCover from './assets/login_background.jpg';
 import LoginScreen from './screens/LoginScreen';
 import HomeScreen from './screens/HomeScreen';
 
+
 const Stack = createNativeStackNavigator();
 
 export default function App() {
@@ -27,25 +28,5 @@ export default function App() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    alignItems: 'center',
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0
-  },
-  image: {
-    flex: 1,
-    width: '100%',
-    height: '100%',
-  },
-  text: {
-    color: 'black',
-    fontSize: 24,
-    lineHeight: 84
-  }
+ 
 });

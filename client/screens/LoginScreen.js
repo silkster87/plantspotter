@@ -1,9 +1,9 @@
-import { KeyboardAvoidingView, StyleSheet, TextInput, View, Text, TouchableOpacity } from 'react-native'
+import { KeyboardAvoidingView, StyleSheet, TextInput, View, Text, TouchableOpacity, ImageBackground } from 'react-native'
 import React, { useState, useEffect } from 'react'
 import { auth } from '../firebase'
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged } from 'firebase/auth';
 import { useNavigation } from '@react-navigation/core';
-
+import image from '../assets/login_background.jpg';
 
 const LoginScreen = () => {
   const [email, setEmail] = useState('');
@@ -42,24 +42,24 @@ const LoginScreen = () => {
   }
 
   return (
-    <KeyboardAvoidingView
+    <View
       style={styles.container}
-      behavior='padding'
     >
+      <ImageBackground source={image} resizeMode='cover' style={styles.image}>
       <View style={styles.inputContainer} >
+        <Text style={styles.title}>Plant Spotter</Text>
         <TextInput
           placeholder="Email"
           value= {email}
           onChangeText= {text => setEmail(text)}
           style={styles.input}
         />
-          
-          <TextInput
-          placeholder="Password"
-          value= {password}
-          onChangeText= {password => setPassword(password)}
-          style={styles.input}
-          secureTextEntry
+        <TextInput
+        placeholder="Password"
+        value= {password}
+        onChangeText= {password => setPassword(password)}
+        style={styles.input}
+        secureTextEntry
         />
       </View>
 
@@ -77,7 +77,8 @@ const LoginScreen = () => {
           <Text style={styles.buttonOutlineText}>Register</Text>
         </TouchableOpacity>
       </View>
-    </KeyboardAvoidingView>
+      </ImageBackground>
+    </View>
   )
 }
 
@@ -87,8 +88,18 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     justifyContent: 'center',
+  },
+  image: {
+    flex: 1,
+    justifyContent: 'center',
     alignItems: 'center',
   },
+  title: {
+    fontSize: 24,
+    textAlign: 'center',
+    marginBottom: 10,
+    color: 'white'
+  },  
   inputContainer: {
     width: '80%'
   },
