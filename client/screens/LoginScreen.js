@@ -28,6 +28,14 @@ const LoginScreen = () => {
       alert('Please enter valid email address');
       return;
     }
+    if (validator.isEmpty(password)) {
+      alert('Please enter password.');
+      return;
+    }
+    if (!validator.isLength(password, {min: 8})) {
+      alert('Password must be at least 8 characters long');
+      return;
+    }
     createUserWithEmailAndPassword(auth, email, password)
     .then(userCredentials => {
       const user = userCredentials.user;
