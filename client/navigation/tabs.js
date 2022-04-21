@@ -8,6 +8,9 @@ import settingsIcon from '../assets/settings.png';
 import cameraIcon from '../assets/camera_icon.png';
 
 const Tab = createBottomTabNavigator();
+const primaryColor = '#097F0C';
+const focusedColor = '#e32f45';
+const unfocusedColor = '#748c94';
 
 const CustomTabBarButton = ({children, onPress}) => (
   <TouchableOpacity style={{
@@ -21,7 +24,7 @@ const CustomTabBarButton = ({children, onPress}) => (
       width: 70,
       height: 70,
       borderRadius: 35,
-      backgroundColor: '#097F0C'
+      backgroundColor: primaryColor
     }}>
       {children}
     </View>
@@ -41,7 +44,7 @@ const Tabs = () => {
             left: 20,
             right: 20,
             elevation: 0,
-            backgroundColor: '#ffffff',
+            backgroundColor: 'white',
             borderRadius: 15,
             height: 90,
             ...styles.shadow
@@ -50,6 +53,7 @@ const Tabs = () => {
       }>
       <Tab.Screen name="Saved" component={SavedScreen} options={
         {
+          headerShown: false,
           tabBarIcon: ({focused}) => (
             <View style={{alignItems: 'center', justifyContent: 'center'}}>
               <Image
@@ -58,11 +62,11 @@ const Tabs = () => {
                 style={{
                   width: 25,
                   height: 25,
-                  tintColor: focused ? '#e32f45': '#748c94'
+                  tintColor: focused ? focusedColor: unfocusedColor
                 }}
               />
               <Text
-                style={{color: focused ? '#e32f45' : '#748c94', fontSize: 12}}>
+                style={{color: focused ? focusedColor : unfocusedColor, fontSize: 12}}>
                   Saved
               </Text>
             </View>
@@ -71,6 +75,7 @@ const Tabs = () => {
 
       }/>
       <Tab.Screen name="Camera" component={CameraScreen} options={{
+        headerShown: false,
         tabBarIcon: ({focused}) => (
           <Image
             source={cameraIcon}
@@ -87,6 +92,7 @@ const Tabs = () => {
       }}/>
       <Tab.Screen name="Settings" component={SettingsScreen} options={
         {
+          headerShown: false,
           tabBarIcon: ({focused}) => (
             <View style={{alignItems: 'center', justifyContent: 'center'}}>
               <Image
@@ -95,11 +101,11 @@ const Tabs = () => {
                 style={{
                   width: 25,
                   height: 25,
-                  tintColor: focused ? '#e32f45': '#748c94'
+                  tintColor: focused ? focusedColor : unfocusedColor
                 }}
               />
               <Text
-                style={{color: focused ? '#e32f45' : '#748c94', fontSize: 12}}>
+                style={{color: focused ? focusedColor : unfocusedColor, fontSize: 12}}>
                   Settings
               </Text>
             </View>
@@ -113,7 +119,7 @@ const Tabs = () => {
 
 const styles = StyleSheet.create({
   shadow: {
-    shadowColor: '#097F0C',
+    shadowColor: primaryColor,
     shadowOffset: {
       width: 0,
       height: 10,
