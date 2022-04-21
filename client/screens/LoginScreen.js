@@ -16,7 +16,7 @@ const LoginScreen = () => {
     
     const unsubscribe = onAuthStateChanged(auth, user =>{
       if (user) {
-        navigation.replace("Home");
+        navigation.replace("Plant Spotter");
       }
     })
 
