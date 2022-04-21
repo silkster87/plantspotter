@@ -4,6 +4,7 @@ import { auth } from '../firebase'
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged } from 'firebase/auth';
 import { useNavigation } from '@react-navigation/core';
 import image from '../assets/login_background.jpg';
+const validator = require('validator');
 
 const LoginScreen = () => {
   const [email, setEmail] = useState('');
@@ -23,6 +24,10 @@ const LoginScreen = () => {
   }, []);
 
   const handleSignUp = () => {
+    if (!validator.isEmail(email)) {
+      alert('Please enter valid email address');
+      return;
+    }
     createUserWithEmailAndPassword(auth, email, password)
     .then(userCredentials => {
       const user = userCredentials.user;
@@ -32,7 +37,10 @@ const LoginScreen = () => {
   }
 
   const handleLogin = () => {
-  
+    if (!validator.isEmail(email)) {
+      alert('Please enter valid email address');
+      return;
+    }
     signInWithEmailAndPassword(auth, email, password)
     .then(userCredentials => {
       const user = userCredentials.user;
