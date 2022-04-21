@@ -3,12 +3,16 @@ import React , { useState, useEffect, useRef } from 'react'
 import { Camera } from 'expo-camera';
 
 import { readAsStringAsync } from 'expo-file-system';
+import Constants from "expo-constants";
+
+
+// const BASE_URL = `http://${manifest.debuggerHost.split(':').shift()}:3001`;
 
 function CameraScreen() {
   const [hasPermission, setHasPermission] = useState(null);
   const [type, setType] = useState(Camera.Constants.Type.back);
   
-  const BASE_URL = 'http://localhost:3001';
+  const BASE_URL = 'https://dc94-78-147-222-60.eu.ngrok.io';
 
   const cameraRef = useRef(null);
 
@@ -29,7 +33,7 @@ function CameraScreen() {
       try {
         let photo = await cameraRef.current.takePictureAsync({
           allowsEditing: true,
-          quality: 1,
+          quality: 0.5,
           aspect:[4,3]
         });
         return photo;
@@ -49,16 +53,22 @@ function CameraScreen() {
             const r = await takePhoto();
             //TODO: SEND PHOTO TO SERVER FOR IDENTIFICATION
             
+            let result = null;
             await readAsStringAsync(r.uri, {encoding: 'base64'})
-              .then((response) => console.log('PICTURE:', response.slice(30)))
-              .catch((error) => console.error(error));
-            
-            // await fetch(BASE_URL, {
-            //   method: 'POST',
-            //   headers: {'Content-Type': 'application/json'},
-            //   body: JSON.stringify(contents)
-            // })
+              .then((response) => {
+                result = response;
+              })
+              .catch((error) => console.error(error.message));
+
+            fetch(`${BASE_URL}/plantLookUp`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({'data' : result})
+              }).then(res => res.json())
+                .then(result => Alert.alert('Success', result.data))
+                .catch(error => Alert.alert('ERROR', error.message));
             }}
+            
           >
             <Text style={{ color: 'white' , fontWeight: 'bold' }}> Take Photo </Text>
           </TouchableOpacity>
