@@ -1,18 +1,20 @@
-import { StyleSheet, Text, View, TouchableOpacity, Alert } from 'react-native'
+import { StyleSheet, Text, View, TouchableOpacity, Alert, Pressable, Modal, Image } from 'react-native'
 import React , { useState, useEffect, useRef } from 'react'
 import { Camera } from 'expo-camera';
-
 import { readAsStringAsync } from 'expo-file-system';
-import Constants from "expo-constants";
-
-
-// const BASE_URL = `http://${manifest.debuggerHost.split(':').shift()}:3001`;
+import { getAuth, onAuthStateChanged } from 'firebase/auth';
 
 function CameraScreen() {
   const [hasPermission, setHasPermission] = useState(null);
   const [type, setType] = useState(Camera.Constants.Type.back);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [plantName, setPlantName] = useState('');
+  const [plantImageUrl, setPlantImageUrl] = useState('');
+  const [photoUri, setPhotoUri] = useState('');
+  const [plantApiResult, setPlantApiResult] = useState({});
+  const [loggedUserEmail, setLoggedUserEmail] = useState(null);
   
-  const BASE_URL = 'https://dc94-78-147-222-60.eu.ngrok.io';
+  const BASE_URL = 'https://0233-78-147-209-58.eu.ngrok.io';
 
   const cameraRef = useRef(null);
 
@@ -21,11 +23,21 @@ function CameraScreen() {
     (async () => {
       const { status } = await Camera.requestCameraPermissionsAsync();
       setHasPermission(status === 'granted');
+
+      const auth = getAuth();
+      onAuthStateChanged(auth, (user) => {
+        if (user){
+          setLoggedUserEmail(user.email);
+        }
+      });
+
     })();
   }, []);
 
   if (hasPermission === null) return <View/>;
   if (hasPermission === false) return <Text>No access to camera</Text>
+
+
 
   const takePhoto = async () => {
     if (cameraRef) {
@@ -43,33 +55,99 @@ function CameraScreen() {
     }
   }
 
+  const identifyPlantFromPhoto = async () => {
+    const r = await takePhoto();
+        
+    setPhotoUri(r.uri);
+    let result = null;
+    await readAsStringAsync(photoUri, {encoding: 'base64'})
+      .then((response) => {
+        result = response;
+      })
+      .catch((error) => console.error(error.message));
+
+    fetch(`${BASE_URL}/plantLookUp`, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({'data' : result})
+      }).then(res => res.json())
+        .then(result => {
+          setPlantApiResult(result.data);
+          setPlantName(result.data.suggestions[0].plant_name);
+          setPlantImageUrl(result.data.images[0].url);
+          setModalVisible(true);
+          //Alert.alert('Success', JSON.stringify(result.data.id))
+        })
+        .catch(error => Alert.alert('ERROR', error.message));
+  }
+
+  const saveIdentifiedPlantToDB = async () => {
+    
+    const plantItemToDB = {
+      userEmail: loggedUserEmail,
+      title: plantName,
+      description: plantApiResult.suggestions[0].plant_details.wiki_description.value,
+      imageUrl: plantApiResult.images[0].url,
+      plantInfoUrl: plantApiResult.suggestions[0].plant_details.url
+    }
+
+    fetch(`${BASE_URL}/save`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ data : plantItemToDB})
+    }).then(res => res.json())
+      .then(result => {
+        Alert.alert('Saved', result.data.title);
+      })
+
+     setModalVisible(!modalVisible);
+  }
+  
+
   return (
+    
     <View style={styles.container}>
+
+        <Modal
+          style={styles.centeredView}
+          animationType="slide"
+          transparent={true}
+          visible={modalVisible}
+          onRequestClose={() => {
+            setModalVisible(!modalVisible);
+          }}
+          >
+          <View style={styles.centeredView}>
+            <View style={styles.modalView}>
+              <Image
+                style={styles.modalImage}
+                source={{uri: plantImageUrl}}
+              ></Image>
+              <Text style={styles.modalText}>
+                The plant name is {plantName}
+              </Text>
+              <View style={styles.buttonView}>
+                <Pressable
+                  style={[styles.buttonModal, styles.buttonModalClose]}
+                  onPress={saveIdentifiedPlantToDB}
+                >
+                  <Text style = {styles.textStyle}>Save</Text>
+                </Pressable>
+                <Pressable
+                  style={[styles.buttonModal, styles.buttonModalClose]}
+                  onPress={() => setModalVisible(!modalVisible)}
+                >
+                  <Text style = {styles.textStyle}>Cancel</Text>
+                </Pressable>
+              </View>
+            </View>
+          </View>
+        </Modal>
+      
       <Camera style={styles.camera} type={type} ref={cameraRef}>
         <View style={styles.buttonContainer}>
           <TouchableOpacity style={styles.button} 
-            onPress={async ()=> {
-            
-            const r = await takePhoto();
-            //TODO: SEND PHOTO TO SERVER FOR IDENTIFICATION
-            
-            let result = null;
-            await readAsStringAsync(r.uri, {encoding: 'base64'})
-              .then((response) => {
-                result = response;
-              })
-              .catch((error) => console.error(error.message));
-
-            fetch(`${BASE_URL}/plantLookUp`, {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({'data' : result})
-              }).then(res => res.json())
-                .then(result => Alert.alert('Success', result.data))
-                .catch(error => Alert.alert('ERROR', error.message));
-            }}
-            
-          >
+            onPress={identifyPlantFromPhoto}>
             <Text style={{ color: 'white' , fontWeight: 'bold' }}> Take Photo </Text>
           </TouchableOpacity>
         </View>
@@ -81,6 +159,56 @@ function CameraScreen() {
 export default CameraScreen;
 
 const styles = StyleSheet.create({
+  centeredView: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 22
+  },
+  modalView: {
+    margin: 20,
+    backgroundColor: 'white',
+    borderRadius: 20,
+    padding: 35,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  buttonView: {
+    justifyContent: 'center',
+    flexDirection: 'row',
+  },
+  modalImage: {
+    width: 220,
+    height: 220,
+    resizeMode: 'cover',
+    marginBottom: 20
+  },
+  modalText: {
+    marginBottom: 15,
+    textAlign: 'center',
+  },
+  textStyle: {
+    color: 'white',
+    fontWeight: 'bold',
+    textAlign: 'center',
+  },
+  buttonModal: {
+    borderRadius: 20,
+    padding: 10,
+    elevation: 2,
+    margin: 10,
+    width: 100
+  },
+  buttonModalClose: {
+    backgroundColor: '#2196F3',
+  },
   container: {
     flex: 1,
   },

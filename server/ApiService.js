@@ -1,22 +1,26 @@
 require('dotenv').config();
-const API_KEY = process.env.API_KEY;
-const BASE_URL = process.env.BASE_URL;
+const axios = require('axios');
 
-async function plandIdService(data) {
+async function plantIdService(base64String) {
 
-  data.api_key = API_KEY;
+  const API_KEY = process.env.API_KEY;
+  const BASE_URL = process.env.BASE_URL;
   
-  return await fetch(BASE_URL, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify(data)
-  }).then(response => response.json())
-    .catch((error) => {
-      console.error(error);
-    });
+  const data = {
+    api_key: API_KEY,
+    images: [base64String],
+    modifiers: ["crops_fast", "similar_images", "health_all"],
+    plant_language: "en",
+    plant_details: ["common_names",
+                      "url",
+                      "name_authority",
+                      "wiki_description",
+                      "taxonomy",
+                      "synonyms"]
+  };
+  
+  return await axios.post(BASE_URL, data);
 }
 
-module.exports = plandIdService;
+module.exports = { plantIdService };
 

@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { getPlants, lookUpPlant } = require('./controller/plantController');
+const { getPlants, lookUpPlant, savePlant } = require('./controller/plantController');
 
 router.get('/', (req, res) => {
   res.send('Hello, world!');
@@ -8,6 +8,7 @@ router.get('/', (req, res) => {
 
 router.get('/plants', getPlants);
 router.post('/plantLookUp', lookUpPlant);
+router.post('/save', savePlant);
 
 router.get('/*', (req, res) => {
   res.status(400).send('Error: not found');
