@@ -3,6 +3,7 @@ import React , { useState, useEffect, useRef } from 'react'
 import { Camera } from 'expo-camera';
 import { readAsStringAsync } from 'expo-file-system';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
+import BASE_URL from '../baseUrl';
 
 function CameraScreen() {
   const [hasPermission, setHasPermission] = useState(null);
@@ -14,7 +15,6 @@ function CameraScreen() {
   const [plantApiResult, setPlantApiResult] = useState({});
   const [loggedUserEmail, setLoggedUserEmail] = useState(null);
   
-  const BASE_URL = 'https://0233-78-147-209-58.eu.ngrok.io';
 
   const cameraRef = useRef(null);
 
@@ -158,7 +158,6 @@ function CameraScreen() {
 }
 
 export default CameraScreen;
-
 
 const styles = StyleSheet.create({
   centeredView: {
