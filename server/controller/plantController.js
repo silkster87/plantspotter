@@ -4,10 +4,10 @@ const mockData = require('./mockData');
 
 async function getPlants(req, res) {
   //Get plants that were saved in user DB for userEmail
-  const userEmail = req.body.data.userEmail;
+  const userEmail = req.body.data;
   try {
+    console.log(userEmail);
     const plantsList = await plantModel.find( { userEmail: userEmail } );
-    console.log(plantsList);
     res.status(200);
     res.send({data : plantsList});
   } catch (error) {
@@ -28,22 +28,23 @@ async function lookUpPlant(req, res) {
   //Get plant info by using the plant Service API
   //console.log('Request: ', JSON.stringify(req.body.data).slice(1));
   const base64String = req.body.data;
-  // console.log('String length: ', base64String.length);
+  //console.log('String length: ', base64String.length);
   // res.send({ data : 'Received base64String from server'});
   // res.status(200);
 
-  let jsonResponseFromPlantAPI = mockData;
+  //let jsonResponseFromPlantAPI = mockData;
   //console.log('Mock Data', mockData);
-  // await plantIdService(base64String)
-  //   .then(response => { console.log('Plant API result: ', response.data) })
-  //   .then(res => {
-  //     jsonResponseFromPlantAPI = res.data;
-  //   })
-  //   .catch((err) => { console.log(err) });
+
+  await plantIdService(base64String)
+    .then(response => {
+      console.log('PlantAPI DATA: ', response.data);
+      res.status(200);
+      res.send({ data : response.data});
+    })
+    .catch((err) => { console.log(err) });
 
 
-    res.status(200);
-    res.send({ data : jsonResponseFromPlantAPI});
+    
   
 }
 

@@ -72,6 +72,7 @@ function CameraScreen() {
         body: JSON.stringify({'data' : result})
       }).then(res => res.json())
         .then(result => {
+          console.log('PLANT API DATA', result.data);
           setPlantApiResult(result.data);
           setPlantName(result.data.suggestions[0].plant_name);
           setPlantImageUrl(result.data.images[0].url);
@@ -157,6 +158,7 @@ function CameraScreen() {
 }
 
 export default CameraScreen;
+
 
 const styles = StyleSheet.create({
   centeredView: {

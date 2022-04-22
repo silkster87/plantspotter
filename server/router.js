@@ -6,7 +6,7 @@ router.get('/', (req, res) => {
   res.send('Hello, world!');
 });
 
-router.get('/plants', getPlants);
+router.post('/plants', getPlants);
 router.post('/plantLookUp', lookUpPlant);
 router.post('/save', savePlant);
 
