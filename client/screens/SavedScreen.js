@@ -1,7 +1,7 @@
 import { StyleSheet, Text, View, FlatList, Modal, Pressable, Image, TouchableOpacity, Linking } from 'react-native'
 import React, { useState, useEffect } from 'react'
 import { getAuth } from 'firebase/auth';
-const BASE_URL = 'https://0233-78-147-209-58.eu.ngrok.io';
+import BASE_URL from '../baseUrl';
 
 export default function SavedScreen() {
   const [plantsList, setPlantsList] = useState([]);
@@ -29,6 +29,20 @@ export default function SavedScreen() {
   function showPlantDetails(id) {
     setPlantItem(plantsList.find(plant => plant._id == id));
     setModalVisible(true);
+  }
+
+  async function removePlantFromList(id) {
+    console.log('Plant ID to remove: ', id);
+    await fetch(`${BASE_URL}/plantItem/${id}`, {
+      method: 'DELETE',
+    }).then(res => res.json())
+      .then(result => {
+        console.log('Item deleted: ', result);
+        setPlantsList( currPlants => {
+          return currPlants.filter( plant => plant._id !== id);
+        } );
+      })
+    setModalVisible(!modalVisible);
   }
 
   const renderItem = ({ item }) => <TouchableOpacity 
@@ -68,7 +82,7 @@ export default function SavedScreen() {
               </Pressable>
               <Pressable
                 style={[styles.button, styles.buttonClose]}
-                onPress={() => setModalVisible(!modalVisible)}
+                onPress={() => removePlantFromList(plantItem._id)}
               >
                 <Text style={styles.textStyle}>Delete</Text>
               </Pressable>

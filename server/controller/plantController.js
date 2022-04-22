@@ -25,13 +25,10 @@ async function savePlant(req, res) {
 }
 
 async function lookUpPlant(req, res) {
-  //Get plant info by using the plant Service API
-  //console.log('Request: ', JSON.stringify(req.body.data).slice(1));
   const base64String = req.body.data;
   //console.log('String length: ', base64String.length);
   // res.send({ data : 'Received base64String from server'});
   // res.status(200);
-
   //let jsonResponseFromPlantAPI = mockData;
   //console.log('Mock Data', mockData);
 
@@ -42,10 +39,14 @@ async function lookUpPlant(req, res) {
       res.send({ data : response.data});
     })
     .catch((err) => { console.log(err) });
-
-
-    
-  
 }
 
-module.exports = { getPlants, lookUpPlant, savePlant };
+async function deletePlant(req, res) {
+  const plantId = req.params.id;
+  const result = await plantModel.findByIdAndDelete(plantId);
+  console.log('Plant removed: ', result);
+  res.status(200);
+  res.send({ data : result});
+}
+
+module.exports = { getPlants, lookUpPlant, savePlant, deletePlant };
