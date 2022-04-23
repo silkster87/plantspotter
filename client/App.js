@@ -13,7 +13,18 @@ export default function App() {
     <NavigationContainer>
       <Stack.Navigator>
         <Stack.Screen options={{ headerShown: false }}name="Login" component={LoginScreen} />
-        <Stack.Screen name="Plant Spotter" component={HomeScreen} />
+        <Stack.Screen 
+          name="Plant Spotter" 
+          options={{
+            headerStyle: {
+              backgroundColor: '#097F0C',
+            },
+            headerTintColor: '#fff',
+            headterTitleStyle: {
+              fontWeight: 'bold',
+            }
+          }} 
+          component={HomeScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );
