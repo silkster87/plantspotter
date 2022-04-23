@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View, FlatList, Modal, Pressable, Image, TouchableOpacity, Linking } from 'react-native'
+import { StyleSheet, Text, View, FlatList, Modal, Pressable, Image, ScrollView, TouchableOpacity, Linking } from 'react-native'
 import React, { useState } from 'react'
 import { getAuth } from 'firebase/auth';
 import { useFocusEffect } from '@react-navigation/native';
@@ -73,7 +73,7 @@ export default function SavedScreen() {
           setModalVisible(!modalVisible)
         }}
       >
-        <View style={styles.centeredView}>
+        <ScrollView style={styles.centeredView}>
           <View style={styles.modalView}>
             <Image
               style={styles.modalImage}
@@ -97,7 +97,7 @@ export default function SavedScreen() {
             </View>
             
           </View>
-        </View>
+        </ScrollView>
       </Modal>
 
       <FlatList data={plantsList} renderItem={renderItem} keyExtractor={item => item._id}/>
@@ -110,9 +110,7 @@ export default function SavedScreen() {
 const styles = StyleSheet.create({
   centeredView: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginTop: 22
+    marginTop: 22,
   },
   modalView: {
     margin: 20,
@@ -167,7 +165,8 @@ const styles = StyleSheet.create({
     fontSize: 20
   },
   container: {
-    flex: 1
+    flex: 1,
+    marginBottom: 140,
   },
   image: {
     height: 100,
