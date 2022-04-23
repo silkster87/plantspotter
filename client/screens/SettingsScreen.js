@@ -18,7 +18,7 @@ export default function SettingsScreen() {
 
   return (
     <View style = {styles.container}>
-      <Text>Logged in as {auth.currentUser?.email}</Text>
+      <Text style = {styles.text}>Logged in as {auth.currentUser?.email}</Text>
       <TouchableOpacity
         onPress={handleSignOut}
         style={styles.button}
@@ -34,6 +34,9 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  text: {
+    fontSize: 20,
   },
   button: {
     backgroundColor: '#097F0C',
