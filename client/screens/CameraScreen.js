@@ -5,13 +5,15 @@ import { readAsStringAsync } from 'expo-file-system';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import { useIsFocused } from '@react-navigation/native';
 import cameraIcon from '../assets/camera_icon.png';
+import uploadIcon from '../assets/upload.png';
 import * as MediaLibrary from 'expo-media-library';
+import * as ImagePicker from 'expo-image-picker';
 
 import BASE_URL from '../baseUrl';
 
 function CameraScreen(props) {
 
-  const isFocused = useIsFocused();
+  
   const [hasPermission, setHasPermission] = useState(null);
   const [type, setType] = useState(Camera.Constants.Type.back);
   const [modalVisible, setModalVisible] = useState(false);
@@ -19,7 +21,9 @@ function CameraScreen(props) {
   const [plantImageUrl, setPlantImageUrl] = useState('');
   const [plantApiResult, setPlantApiResult] = useState({});
   const [loggedUserEmail, setLoggedUserEmail] = useState(null);
+  const [isFocusedCam, setIsFocusedCam] = useState(true);
   const cameraRef = useRef(null);
+  const isFocused = useIsFocused();
 
 
   useEffect(() => {
@@ -58,10 +62,36 @@ function CameraScreen(props) {
   const identifyPlantFromPhoto = async () => {
     const r = await takePhoto();
         
-    let result = null;
-    MediaLibrary.saveToLibraryAsync(r.uri);
     
-    await readAsStringAsync(r.uri, {encoding: 'base64'})
+    MediaLibrary.saveToLibraryAsync(r.uri);
+
+    fetchPlantDetailsFromAPI(r.uri);
+    // await readAsStringAsync(r.uri, {encoding: 'base64'})
+    //   .then((response) => {
+    //     result = response;
+    //   })
+    //   .catch((error) => console.error('ERROR READING STRING: ', error.message));
+
+    // fetch(`${BASE_URL}/plantLookUp`, {
+    //     method: 'POST',
+    //     headers: {'Content-Type': 'application/json'},
+    //     body: JSON.stringify({'data' : result})
+    //   }).then(res => res.json())
+    //     .then(result => {
+    //       console.log('PLANT API DATA', result.data);
+    //       setPlantApiResult(result.data);
+    //       setPlantName(result.data.suggestions[0].plant_name);
+    //       setPlantImageUrl(result.data.images[0].url);
+    //       setModalVisible(true);
+    //     })
+    //     .catch(error => Alert.alert('ERROR IN PLANT LOOK UP', error.message));
+  }
+
+  const fetchPlantDetailsFromAPI = async (uri) => {
+
+    let result = null;
+
+    await readAsStringAsync(uri, {encoding: 'base64'})
       .then((response) => {
         result = response;
       })
@@ -81,6 +111,7 @@ function CameraScreen(props) {
         })
         .catch(error => Alert.alert('ERROR IN PLANT LOOK UP', error.message));
   }
+
 
   const saveIdentifiedPlantToDB = async () => {
     
@@ -105,66 +136,91 @@ function CameraScreen(props) {
      setModalVisible(!modalVisible);
   }
 
+  const pickImage = async () => {
+    setIsFocusedCam(false);
+    let result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: 'Images',
+      allowsEditing: false,
+      aspect: [4, 3],
+      quality: 0.5
+    });
+
+    setIsFocusedCam(true);
+    // console.log('IMAGE PICKED FROM USER: ', result);
+    // Alert.alert('Image picked: ', result.uri);
+    fetchPlantDetailsFromAPI(result.uri);
+  }
+
  
   
-
+if (isFocusedCam) {
   return (
     
-     <View style={styles.container}>
+    <View style={styles.container}>
 
-        <Modal
-          style={styles.centeredView}
-          animationType="slide"
-          transparent={true}
-          visible={modalVisible}
-          onRequestClose={() => {
-            setModalVisible(!modalVisible);
-          }}
-          >
-          <View style={styles.centeredView}>
-            <View style={styles.modalView}>
-              <Image
-                style={styles.modalImage}
-                source={{uri: plantImageUrl}}
-              ></Image>
-              <Text style={styles.modalText}>
-                The plant name is {plantName}
-              </Text>
-              <View style={styles.buttonView}>
-                <Pressable
-                  style={[styles.buttonModal, styles.buttonModalClose]}
-                  onPress={saveIdentifiedPlantToDB}
-                >
-                  <Text style = {styles.textStyle}>Save</Text>
-                </Pressable>
-                <Pressable
-                  style={[styles.buttonModal, styles.buttonModalClose]}
-                  onPress={() => setModalVisible(!modalVisible)}
-                >
-                  <Text style = {styles.textStyle}>Cancel</Text>
-                </Pressable>
-              </View>
-            </View>
-          </View>
-        </Modal>
-       { isFocused && <Camera style={styles.camera} type={type} ref={cameraRef}>
-        <View style={styles.buttonContainer}>
-          
-          <TouchableOpacity style={styles.button} 
-            onPress={identifyPlantFromPhoto}>
-            {/* <Text style={{ color: 'white' , fontWeight: 'bold' }}> Take Photo </Text> */}
-            
-            <Image 
-              source={cameraIcon}
-              resizeMode = 'contain'
-              style = {styles.cameraIcon}
-            />
-          </TouchableOpacity>
-        </View>
-      </Camera> }
-      
-    </View> 
-  );
+       <Modal
+         style={styles.centeredView}
+         animationType="slide"
+         transparent={true}
+         visible={modalVisible}
+         onRequestClose={() => {
+           setModalVisible(!modalVisible);
+         }}
+         >
+         <View style={styles.centeredView}>
+           <View style={styles.modalView}>
+             <Image
+               style={styles.modalImage}
+               source={{uri: plantImageUrl}}
+             ></Image>
+             <Text style={styles.modalText}>
+               The plant name is {plantName}
+             </Text>
+             <View style={styles.buttonView}>
+               <Pressable
+                 style={[styles.buttonModal, styles.buttonModalClose]}
+                 onPress={saveIdentifiedPlantToDB}
+               >
+                 <Text style = {styles.textStyle}>Save</Text>
+               </Pressable>
+               <Pressable
+                 style={[styles.buttonModal, styles.buttonModalClose]}
+                 onPress={() => setModalVisible(!modalVisible)}
+               >
+                 <Text style = {styles.textStyle}>Cancel</Text>
+               </Pressable>
+             </View>
+           </View>
+         </View>
+       </Modal>
+      { isFocused && <Camera style={styles.camera} type={type} ref={cameraRef}>
+       <View style={styles.buttonContainer}>
+         
+         <TouchableOpacity style={styles.button} 
+           onPress={identifyPlantFromPhoto}>
+           <Image 
+             source={cameraIcon}
+             resizeMode = 'contain'
+             style = {styles.cameraIcon}
+           />
+         </TouchableOpacity>
+         <TouchableOpacity style={styles.button} 
+           onPress={pickImage}>
+           <Image 
+             source={uploadIcon}
+             resizeMode = 'contain'
+             style = {styles.cameraIcon}
+           />
+         </TouchableOpacity>
+       </View>
+     </Camera> }
+     
+   </View> 
+ );
+} else {
+  return <></>
+}
+  
 }
 
 export default CameraScreen;
@@ -236,9 +292,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent',
     flexDirection: 'row',
     paddingBottom : 150,
-    width: 70,
-    height: 70,
-    alignSelf: 'center',
+    justifyContent: 'center'
   },
   button: {
     flex: 1,
@@ -246,7 +300,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#097F0C',
     borderRadius: 10,
-    overflow: 'hidden',
+    marginLeft: 30,
+    marginRight: 30,
   },
   text: {
     fontSize: 18,
