@@ -8,29 +8,8 @@ import settingsIcon from '../assets/settings.png';
 import cameraIcon from '../assets/camera_icon.png';
 
 const Tab = createBottomTabNavigator();
-const primaryColor = '#097F0C';
 const focusedColor = '#e32f45';
 const unfocusedColor = '#748c94';
-
-const CustomTabBarButton = ({children, onPress}) => (
-  <TouchableOpacity style={{
-    top: -30,
-    justifyContent: 'center',
-    alignItems: 'center',
-    ...styles.shadow
-
-  }} onPress={onPress}>
-    <View style={{
-      width: 70,
-      height: 70,
-      borderRadius: 35,
-      backgroundColor: primaryColor
-    }}>
-      {children}
-    </View>
-  </TouchableOpacity>
-)
-
 
 const Tabs = () => {
   return (
@@ -77,18 +56,21 @@ const Tabs = () => {
       <Tab.Screen name="Camera" component={CameraScreen} options={{
         headerShown: false,
         tabBarIcon: ({focused}) => (
+          <View style={{alignItems: 'center', justifyContent: 'center'}}>
           <Image
             source={cameraIcon}
             resizeMode = 'contain'
             style={{
               width: 30,
               height: 30,
-              tintColor: 'white'
+              tintColor: focused ? focusedColor: unfocusedColor
             }}/>
+            <Text
+                style={{color: focused ? focusedColor : unfocusedColor, fontSize: 12}}>
+                  Camera
+              </Text>
+            </View>
         ),
-        tabBarButton: (props) => (
-          <CustomTabBarButton {...props} />
-        )
       }}/>
       <Tab.Screen name="Settings" component={SettingsScreen} options={
         {
@@ -119,7 +101,7 @@ const Tabs = () => {
 
 const styles = StyleSheet.create({
   shadow: {
-    shadowColor: primaryColor,
+    shadowColor: '#000',
     shadowOffset: {
       width: 0,
       height: 10,
