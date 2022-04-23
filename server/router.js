@@ -3,7 +3,7 @@ const router = express.Router();
 const { getPlants, lookUpPlant, savePlant, deletePlant } = require('./controller/plantController');
 
 router.get('/', (req, res) => {
-  res.send('Hello, world!');
+  res.send('This is back end server for plant spotter');
 });
 
 router.post('/plants', getPlants);
