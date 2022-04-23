@@ -1,6 +1,8 @@
 import { StyleSheet, Text, View, FlatList, Modal, Pressable, Image, TouchableOpacity, Linking } from 'react-native'
-import React, { useState, useEffect } from 'react'
+import React, { useState } from 'react'
 import { getAuth } from 'firebase/auth';
+import { useFocusEffect } from '@react-navigation/native';
+
 
 export default function SavedScreen() {
   const [plantsList, setPlantsList] = useState([]);
@@ -8,11 +10,19 @@ export default function SavedScreen() {
   const [plantItem, setPlantItem] = useState({});
 
   const BASE_URL = 'https://6602-78-147-218-246.eu.ngrok.io';
+  
+  useFocusEffect(
+    React.useCallback(() => {
+      let isActive = true;
+      getPlants();
+      return () => {
+        isActive = false;
+      };
+    }, [])
+  );
 
-  useEffect(() => {
-    (async () => {
-      const auth = getAuth();
-            
+  async function getPlants() {
+    const auth = getAuth();
       fetch(`${BASE_URL}/plants`, {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
@@ -22,9 +32,7 @@ export default function SavedScreen() {
           setPlantsList(result.data);
         })
         .catch(err => console.error('SAVED SCREEN NETWORK ERROR: ', err));
-
-    })();
-  }, []);
+  }
 
   function showPlantDetails(id) {
     setPlantItem(plantsList.find(plant => plant._id == id));
