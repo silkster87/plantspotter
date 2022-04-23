@@ -3,15 +3,20 @@ import React , { useState, useEffect, useRef } from 'react'
 import { Camera } from 'expo-camera';
 import { readAsStringAsync } from 'expo-file-system';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
+import { useIsFocused } from '@react-navigation/native';
+
+
 import BASE_URL from '../baseUrl';
 
-function CameraScreen() {
+function CameraScreen(props) {
+
+  const isFocused = useIsFocused();
+
   const [hasPermission, setHasPermission] = useState(null);
   const [type, setType] = useState(Camera.Constants.Type.back);
   const [modalVisible, setModalVisible] = useState(false);
   const [plantName, setPlantName] = useState('');
   const [plantImageUrl, setPlantImageUrl] = useState('');
-  const [photoUri, setPhotoUri] = useState('');
   const [plantApiResult, setPlantApiResult] = useState({});
   const [loggedUserEmail, setLoggedUserEmail] = useState(null);
   
@@ -41,13 +46,13 @@ function CameraScreen() {
 
   const takePhoto = async () => {
     if (cameraRef) {
-      console.log('take photo');
       try {
         let photo = await cameraRef.current.takePictureAsync({
           allowsEditing: true,
           quality: 0.5,
           aspect:[4,3]
         });
+        console.log('CAMERA REF: ',cameraRef);
         return photo;
       } catch (error) {
         console.error(error);
@@ -58,13 +63,12 @@ function CameraScreen() {
   const identifyPlantFromPhoto = async () => {
     const r = await takePhoto();
         
-    setPhotoUri(r.uri);
     let result = null;
-    await readAsStringAsync(photoUri, {encoding: 'base64'})
+    await readAsStringAsync(r.uri, {encoding: 'base64'})
       .then((response) => {
         result = response;
       })
-      .catch((error) => console.error(error.message));
+      .catch((error) => console.error('ERROR READING STRING: ', error.message));
 
     fetch(`${BASE_URL}/plantLookUp`, {
         method: 'POST',
@@ -77,9 +81,8 @@ function CameraScreen() {
           setPlantName(result.data.suggestions[0].plant_name);
           setPlantImageUrl(result.data.images[0].url);
           setModalVisible(true);
-          //Alert.alert('Success', JSON.stringify(result.data.id))
         })
-        .catch(error => Alert.alert('ERROR', error.message));
+        .catch(error => Alert.alert('ERROR IN PLANT LOOK UP', error.message));
   }
 
   const saveIdentifiedPlantToDB = async () => {
@@ -107,7 +110,7 @@ function CameraScreen() {
 
   return (
     
-    <View style={styles.container}>
+     <View style={styles.container}>
 
         <Modal
           style={styles.centeredView}
@@ -144,16 +147,16 @@ function CameraScreen() {
             </View>
           </View>
         </Modal>
-      
-      <Camera style={styles.camera} type={type} ref={cameraRef}>
+       { isFocused && <Camera style={styles.camera} type={type} ref={cameraRef}>
         <View style={styles.buttonContainer}>
           <TouchableOpacity style={styles.button} 
             onPress={identifyPlantFromPhoto}>
             <Text style={{ color: 'white' , fontWeight: 'bold' }}> Take Photo </Text>
           </TouchableOpacity>
         </View>
-      </Camera>
-    </View>
+      </Camera> }
+      
+    </View> 
   );
 }
 
