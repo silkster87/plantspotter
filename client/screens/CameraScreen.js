@@ -1,10 +1,11 @@
-import { StyleSheet, Text, View, TouchableOpacity, Alert, Pressable, Modal, Image } from 'react-native'
+import { StyleSheet, Text, View, TouchableOpacity, Alert, Pressable, Modal, Image, ActivityIndicator } from 'react-native'
 import React , { useState, useEffect, useRef } from 'react'
 import { Camera } from 'expo-camera';
 import { readAsStringAsync } from 'expo-file-system';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import { useIsFocused } from '@react-navigation/native';
 import cameraIcon from '../assets/camera_icon.png';
+import * as MediaLibrary from 'expo-media-library';
 
 import BASE_URL from '../baseUrl';
 
@@ -58,6 +59,8 @@ function CameraScreen(props) {
     const r = await takePhoto();
         
     let result = null;
+    MediaLibrary.saveToLibraryAsync(r.uri);
+    
     await readAsStringAsync(r.uri, {encoding: 'base64'})
       .then((response) => {
         result = response;
@@ -95,12 +98,14 @@ function CameraScreen(props) {
       body: JSON.stringify({ data : plantItemToDB})
     }).then(res => res.json())
       .then(result => {
-        Alert.alert('Saved', result.data.title);
+        console.log('Saved', result.data.title);
       })
       .catch(error => console.error('ERROR SAVING REQUEST: ' , error))
 
      setModalVisible(!modalVisible);
   }
+
+ 
   
 
   return (
@@ -144,9 +149,11 @@ function CameraScreen(props) {
         </Modal>
        { isFocused && <Camera style={styles.camera} type={type} ref={cameraRef}>
         <View style={styles.buttonContainer}>
+          
           <TouchableOpacity style={styles.button} 
             onPress={identifyPlantFromPhoto}>
             {/* <Text style={{ color: 'white' , fontWeight: 'bold' }}> Take Photo </Text> */}
+            
             <Image 
               source={cameraIcon}
               resizeMode = 'contain'
