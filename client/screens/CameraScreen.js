@@ -4,14 +4,13 @@ import { Camera } from 'expo-camera';
 import { readAsStringAsync } from 'expo-file-system';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import { useIsFocused } from '@react-navigation/native';
-
+import cameraIcon from '../assets/camera_icon.png';
 
 import BASE_URL from '../baseUrl';
 
 function CameraScreen(props) {
 
   const isFocused = useIsFocused();
-
   const [hasPermission, setHasPermission] = useState(null);
   const [type, setType] = useState(Camera.Constants.Type.back);
   const [modalVisible, setModalVisible] = useState(false);
@@ -19,8 +18,6 @@ function CameraScreen(props) {
   const [plantImageUrl, setPlantImageUrl] = useState('');
   const [plantApiResult, setPlantApiResult] = useState({});
   const [loggedUserEmail, setLoggedUserEmail] = useState(null);
-  
-
   const cameraRef = useRef(null);
 
 
@@ -42,8 +39,6 @@ function CameraScreen(props) {
   if (hasPermission === null) return <View/>;
   if (hasPermission === false) return <Text>No access to camera</Text>
 
-
-
   const takePhoto = async () => {
     if (cameraRef) {
       try {
@@ -52,7 +47,6 @@ function CameraScreen(props) {
           quality: 0.5,
           aspect:[4,3]
         });
-        console.log('CAMERA REF: ',cameraRef);
         return photo;
       } catch (error) {
         console.error(error);
@@ -103,6 +97,7 @@ function CameraScreen(props) {
       .then(result => {
         Alert.alert('Saved', result.data.title);
       })
+      .catch(error => console.error('ERROR SAVING REQUEST: ' , error))
 
      setModalVisible(!modalVisible);
   }
@@ -151,7 +146,12 @@ function CameraScreen(props) {
         <View style={styles.buttonContainer}>
           <TouchableOpacity style={styles.button} 
             onPress={identifyPlantFromPhoto}>
-            <Text style={{ color: 'white' , fontWeight: 'bold' }}> Take Photo </Text>
+            {/* <Text style={{ color: 'white' , fontWeight: 'bold' }}> Take Photo </Text> */}
+            <Image 
+              source={cameraIcon}
+              resizeMode = 'contain'
+              style = {styles.cameraIcon}
+            />
           </TouchableOpacity>
         </View>
       </Camera> }
@@ -163,6 +163,11 @@ function CameraScreen(props) {
 export default CameraScreen;
 
 const styles = StyleSheet.create({
+  cameraIcon: {
+    width: 50,
+    height: 50,
+    tintColor: 'white',
+  },
   centeredView: {
     flex: 1,
     justifyContent: 'center',
@@ -223,13 +228,18 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: 'transparent',
     flexDirection: 'row',
-    margin: 20,
-    paddingBottom : 150
+    paddingBottom : 150,
+    width: 70,
+    height: 70,
+    alignSelf: 'center',
   },
   button: {
     flex: 1,
     alignSelf: 'flex-end',
     alignItems: 'center',
+    backgroundColor: '#097F0C',
+    borderRadius: 10,
+    overflow: 'hidden',
   },
   text: {
     fontSize: 18,
