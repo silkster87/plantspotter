@@ -1,12 +1,13 @@
 import { StyleSheet, Text, View, FlatList, Modal, Pressable, Image, TouchableOpacity, Linking } from 'react-native'
 import React, { useState, useEffect } from 'react'
 import { getAuth } from 'firebase/auth';
-import BASE_URL from '../baseUrl';
 
 export default function SavedScreen() {
   const [plantsList, setPlantsList] = useState([]);
   const [modalVisible, setModalVisible] = useState(false);
   const [plantItem, setPlantItem] = useState({});
+
+  const BASE_URL = 'https://6602-78-147-218-246.eu.ngrok.io';
 
   useEffect(() => {
     (async () => {
@@ -18,10 +19,9 @@ export default function SavedScreen() {
         body: JSON.stringify({data : auth.currentUser.email})
       }).then(res => res.json())
         .then(result => {
-          console.log(result.data);
           setPlantsList(result.data);
         })
-        .catch(err => console.error(err));
+        .catch(err => console.error('SAVED SCREEN NETWORK ERROR: ', err));
 
     })();
   }, []);
