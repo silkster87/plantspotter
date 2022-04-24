@@ -9,8 +9,9 @@ export default function SavedScreen() {
   const [modalVisible, setModalVisible] = useState(false);
   const [plantItem, setPlantItem] = useState({});
 
-  const BASE_URL = 'https://6602-78-147-218-246.eu.ngrok.io';
+  const BASE_URL = 'https://6e61-79-66-59-167.eu.ngrok.io';
   
+  //This is used to perform the getPlants again when navigating back to this screen
   useFocusEffect(
     React.useCallback(() => {
       let isActive = true;
@@ -29,9 +30,13 @@ export default function SavedScreen() {
         body: JSON.stringify({data : auth.currentUser.email})
       }).then(res => res.json())
         .then(result => {
-          setPlantsList(result.data);
+          setPlantsList(sortPlantsByDate(result.data));
         })
         .catch(err => console.error('SAVED SCREEN NETWORK ERROR: ', err));
+  }
+
+  function sortPlantsByDate(arr) {
+    return arr.sort((a, b) => (Date.parse(b.date) - Date.parse(a.date)));
   }
 
   function showPlantDetails(id) {
