@@ -11,9 +11,7 @@ import * as ImagePicker from 'expo-image-picker';
 
 import BASE_URL from '../baseUrl';
 
-function CameraScreen(props) {
-
-  
+function CameraScreen() {
   const [hasPermission, setHasPermission] = useState(null);
   const [type, setType] = useState(Camera.Constants.Type.back);
   const [modalVisible, setModalVisible] = useState(false);
@@ -62,30 +60,8 @@ function CameraScreen(props) {
 
   const identifyPlantFromPhoto = async () => {
     const r = await takePhoto();
-        
-    
     MediaLibrary.saveToLibraryAsync(r.uri);
-
     fetchPlantDetailsFromAPI(r.uri);
-    // await readAsStringAsync(r.uri, {encoding: 'base64'})
-    //   .then((response) => {
-    //     result = response;
-    //   })
-    //   .catch((error) => console.error('ERROR READING STRING: ', error.message));
-
-    // fetch(`${BASE_URL}/plantLookUp`, {
-    //     method: 'POST',
-    //     headers: {'Content-Type': 'application/json'},
-    //     body: JSON.stringify({'data' : result})
-    //   }).then(res => res.json())
-    //     .then(result => {
-    //       console.log('PLANT API DATA', result.data);
-    //       setPlantApiResult(result.data);
-    //       setPlantName(result.data.suggestions[0].plant_name);
-    //       setPlantImageUrl(result.data.images[0].url);
-    //       setModalVisible(true);
-    //     })
-    //     .catch(error => Alert.alert('ERROR IN PLANT LOOK UP', error.message));
   }
 
   const fetchPlantDetailsFromAPI = async (uri) => {
