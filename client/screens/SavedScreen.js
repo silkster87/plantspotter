@@ -94,7 +94,7 @@ export default function SavedScreen() {
                 <Text style={styles.textStyle}>Ok</Text>
               </Pressable>
               <Pressable
-                style={[styles.button, styles.buttonClose]}
+                style={[styles.button, styles.buttonClose, styles.button2]}
                 onPress={() => removePlantFromList(plantItem._id)}
               >
                 <Text style={styles.textStyle}>Delete</Text>
@@ -161,7 +161,9 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     padding: 5,
     justifyContent: 'center',
-    
+  },
+  button2: {
+    backgroundColor: '#e32f45'
   },
   textStyle: {
     color: 'white',
