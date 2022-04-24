@@ -143,11 +143,12 @@ function CameraScreen(props) {
       allowsEditing: false,
       aspect: [4, 3],
       quality: 0.5
+    }).catch(err => { 
+      console.error('ERROR PICK IMAGE: ', err); 
+      return;
     });
-
     setIsFocusedCam(true);
-    // console.log('IMAGE PICKED FROM USER: ', result);
-    // Alert.alert('Image picked: ', result.uri);
+    if (result.cancelled) return;
     fetchPlantDetailsFromAPI(result.uri);
   }
 
