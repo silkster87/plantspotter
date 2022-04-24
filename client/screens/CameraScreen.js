@@ -22,6 +22,7 @@ function CameraScreen(props) {
   const [plantApiResult, setPlantApiResult] = useState({});
   const [loggedUserEmail, setLoggedUserEmail] = useState(null);
   const [isFocusedCam, setIsFocusedCam] = useState(true);
+  const [isWaiting, setIsWaiting] = useState(false);
   const cameraRef = useRef(null);
   const isFocused = useIsFocused();
 
@@ -88,7 +89,7 @@ function CameraScreen(props) {
   }
 
   const fetchPlantDetailsFromAPI = async (uri) => {
-
+    setIsWaiting(!isWaiting);
     let result = null;
 
     await readAsStringAsync(uri, {encoding: 'base64'})
@@ -107,6 +108,7 @@ function CameraScreen(props) {
           setPlantApiResult(result.data);
           setPlantName(result.data.suggestions[0].plant_name);
           setPlantImageUrl(result.data.images[0].url);
+          setIsWaiting(!isWaiting);
           setModalVisible(true);
         })
         .catch(error => Alert.alert('ERROR IN PLANT LOOK UP', error.message));
@@ -133,7 +135,8 @@ function CameraScreen(props) {
       })
       .catch(error => console.error('ERROR SAVING REQUEST: ' , error))
 
-     setModalVisible(!modalVisible);
+      setIsWaiting(!isWaiting);
+      setModalVisible(!modalVisible);
   }
 
   const pickImage = async () => {
@@ -186,7 +189,9 @@ if (isFocusedCam) {
                </Pressable>
                <Pressable
                  style={[styles.buttonModal, styles.buttonModalClose]}
-                 onPress={() => setModalVisible(!modalVisible)}
+                 onPress={() => {
+                  setIsWaiting(!isWaiting); 
+                  setModalVisible(!modalVisible)}}
                >
                  <Text style = {styles.textStyle}>Cancel</Text>
                </Pressable>
@@ -195,8 +200,9 @@ if (isFocusedCam) {
          </View>
        </Modal>
       { isFocused && <Camera style={styles.camera} type={type} ref={cameraRef}>
+        
        <View style={styles.buttonContainer}>
-         
+       
          <TouchableOpacity style={styles.button} 
            onPress={identifyPlantFromPhoto}>
            <Image 
@@ -205,6 +211,7 @@ if (isFocusedCam) {
              style = {styles.cameraIcon}
            />
          </TouchableOpacity>
+         <ActivityIndicator animating={isWaiting} size= { 75 } color = '#e32f45'/>
          <TouchableOpacity style={styles.button} 
            onPress={pickImage}>
            <Image 
