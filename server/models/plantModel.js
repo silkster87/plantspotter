@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 const { Schema } = mongoose;
 
 const plantSchema = new Schema({
-  userEmail: String,
+  userEmail: { type: String, required: true },
   title: String,
   description: String,
   date: { type: Date, default: Date.now},
