@@ -1,4 +1,4 @@
-import { Text, View, TouchableOpacity, Alert, Pressable, Modal, Image, ActivityIndicator } from 'react-native'
+import { Text, View, TouchableOpacity, Alert, Pressable, Modal, Image, ActivityIndicator, AppState } from 'react-native'
 import React , { useState, useEffect, useRef } from 'react'
 import { Camera } from 'expo-camera';
 import { readAsStringAsync } from 'expo-file-system';
@@ -13,7 +13,8 @@ import COLORS from '../theme.js';
 
 import BASE_URL from '../baseUrl';
 
-function CameraScreen() {
+function CameraScreen( {navigation} ) {
+
   const [hasPermission, setHasPermission] = useState(null);
   const [type, setType] = useState(Camera.Constants.Type.back);
   const [modalVisible, setModalVisible] = useState(false);
@@ -26,10 +27,14 @@ function CameraScreen() {
   const cameraRef = useRef(null);
   const isFocused = useIsFocused();
 
+  const appState = useRef(AppState.currentState);
+
+  
 
   useEffect(() => {
     (async () => {
-      
+      AppState.addEventListener('change', _handleAppStateChange);
+
       const { status } = await Camera.requestCameraPermissionsAsync();
       setHasPermission(status === 'granted');
 
@@ -39,10 +44,23 @@ function CameraScreen() {
           setLoggedUserEmail(user.email);
         }
       });
-      
+
+      return () => {
+        AppState.remove('change', _handleAppStateChange);
+      }
       
     })();
   }, []);
+
+  const _handleAppStateChange = nextAppState => {
+    // if (appState.current.match(/inactive|background/)) {
+    //   console.log('Am I focused? ', isFocused);
+    //   navigation.navigate('Saved');
+    // }
+  
+    navigation.navigate('Saved');
+    
+  };
 
   if (hasPermission === null) return <View/>;
   if (hasPermission === false) return <Text>No access to camera</Text>
