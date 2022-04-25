@@ -2,12 +2,18 @@ const { plantIdService } = require('../ApiService');
 const { plantModel } = require('../models/plantModel');
 const mockData = require('./mockData');
 
+function sortPlantsByDate(arr) {
+  return arr.sort((a, b) => (Date.parse(b.date) - Date.parse(a.date)));
+}
+
 async function getPlants(req, res) {
   const userEmail = req.body.data;
   try {
     const plantsList = await plantModel.find( { userEmail: userEmail } );
+    const sortedPlantsList = sortPlantsByDate(plantsList);
+    
     res.status(200);
-    res.send({data : plantsList});
+    res.send({data : sortedPlantsList});
   } catch (error) {
     res.status(500).send('Unable to get plants - try again.');
     console.error('ERROR IN GETPLANTS: ', error);
