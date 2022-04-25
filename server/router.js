@@ -18,7 +18,7 @@ router.delete('/plantItem/:id', deletePlant);
 router.delete('/deleteUser', deleteUser);
 
 router.get('/*', (req, res) => {
-  res.status(400).send('Error: not found');
+  res.status(404).send('Error: not found');
 });
 
 module.exports = router;
