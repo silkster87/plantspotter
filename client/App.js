@@ -45,6 +45,7 @@ const styles = StyleSheet.create({
   logoView: {
     width: 48,
     height: 48,
+    marginTop: 10,
   }
 })
 
