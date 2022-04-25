@@ -2,6 +2,8 @@ import { StyleSheet, Text, View, FlatList, Modal, Pressable, Image, ScrollView, 
 import React, { useState } from 'react'
 import { getAuth } from 'firebase/auth';
 import { useFocusEffect } from '@react-navigation/native';
+import screenshotCamera from '../assets/screenshot_camera.jpg';
+import screenshotPhotoPlant from '../assets/screenshot_photoplant.jpg';
 
 
 export default function SavedScreen() {
@@ -9,7 +11,7 @@ export default function SavedScreen() {
   const [modalVisible, setModalVisible] = useState(false);
   const [plantItem, setPlantItem] = useState({});
 
-  const BASE_URL = 'https://6e61-79-66-59-167.eu.ngrok.io';
+  const BASE_URL = 'https://4992-78-147-211-58.eu.ngrok.io';
   
   //This is used to perform the getPlants again when navigating back to this screen
   useFocusEffect(
@@ -68,8 +70,9 @@ export default function SavedScreen() {
                                     </TouchableOpacity>
 
   return (
+    
     <View style = {styles.container}>
-
+      
       <Modal
         animationType='slide'
         transparent={true}
@@ -100,19 +103,54 @@ export default function SavedScreen() {
                 <Text style={styles.textStyle}>Delete</Text>
               </Pressable>
             </View>
-            
           </View>
         </ScrollView>
       </Modal>
-
+      {plantsList.length > 0 && 
       <FlatList data={plantsList} renderItem={renderItem} keyExtractor={item => item._id}/>
-
+      }
+      {plantsList.length == 0 && 
+      <ScrollView style={styles.scrollViewContainer}>
+        <Text style={styles.textNoSavedPlants}>You have no saved plants.</Text>
+        
+          <Image style={styles.screenshotImage} source={screenshotCamera}></Image>
+        
+        <Text style={styles.textNoSavedPlants}>Click on the Camera Icon to take picture or upload a plant.</Text>
+        
+          <Image style={styles.screenshotPlant} source={screenshotPhotoPlant}></Image>
+        <Text style={styles.textNoSavedPlants}>Once identified you will have the option of saving or discarding the result.</Text>
+      </ScrollView>
+      }
     </View>
+      
     
   )
 }
 
 const styles = StyleSheet.create({
+  screenshotImage: {
+    width: '70%',
+    height: 160,
+    resizeMode: 'contain',
+    marginTop: 10,
+    marginLeft: 'auto',
+    marginRight: 'auto',
+  },
+  screenshotPlant: {
+    width: '70%',
+    height: 230,
+    resizeMode: 'contain',
+    marginLeft: 'auto',
+    marginRight: 'auto',
+    
+  },
+  textNoSavedPlants: {
+    color: 'black',
+    fontSize: 20,
+    marginTop: 10,
+    marginLeft: 20,
+    marginRight: 20,
+  },
   centeredView: {
     flex: 1,
     marginTop: 22,
@@ -174,6 +212,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     marginBottom: 140,
+  },
+  scrollViewContainer: {
+    flex: 1,
   },
   image: {
     height: 100,
