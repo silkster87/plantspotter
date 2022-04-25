@@ -9,6 +9,7 @@ async function getPlants(req, res) {
     res.status(200);
     res.send({data : plantsList});
   } catch (error) {
+    res.status(500).send('Unable to get plants - try again.');
     console.error('ERROR IN GETPLANTS: ', error);
   }
 }
@@ -23,15 +24,17 @@ async function savePlant(req, res) {
 
 async function lookUpPlant(req, res) {
   const base64String = req.body.data;
-  
-  await plantIdService(base64String)
+  try {
+    plantIdService(base64String)
     .then(response => {
       console.log('PlantAPI DATA: ', response.data);
       res.status(200);
       res.send({ data : response.data});
-    })
-    .catch((err) => { console.log('ERROR IN LOOKUPPLANT: ', err) });
-  
+    });
+  } catch (err) {
+    res.status(500).send('Unable to use plant ID service. Please try again');
+    console.log('ERROR IN LOOKUPPLANT: ', err) 
+  }
 }
 
 async function deletePlant(req, res) {
