@@ -1,10 +1,10 @@
-import { StyleSheet, Text, View, FlatList, Modal, Pressable, Image, ScrollView, TouchableOpacity, Linking } from 'react-native'
+import { Text, View, FlatList, Modal, Pressable, Image, ScrollView, TouchableOpacity, Linking } from 'react-native'
 import React, { useState } from 'react'
 import { getAuth } from 'firebase/auth';
 import { useFocusEffect } from '@react-navigation/native';
 import screenshotCamera from '../assets/screenshot_camera.jpg';
 import screenshotPhotoPlant from '../assets/screenshot_photoplant.jpg';
-
+import styles from '../styleSheets/SavedScreenStyle';
 
 export default function SavedScreen() {
   const [plantsList, setPlantsList] = useState([]);
@@ -72,7 +72,6 @@ export default function SavedScreen() {
   return (
     
     <View style = {styles.container}>
-      
       <Modal
         animationType='slide'
         transparent={true}
@@ -112,128 +111,12 @@ export default function SavedScreen() {
       {plantsList.length == 0 && 
       <ScrollView style={styles.scrollViewContainer}>
         <Text style={styles.textNoSavedPlants}>You have no saved plants.</Text>
-        
           <Image style={styles.screenshotImage} source={screenshotCamera}></Image>
-        
         <Text style={styles.textNoSavedPlants}>Click on the Camera Icon to take picture or upload a plant.</Text>
-        
           <Image style={styles.screenshotPlant} source={screenshotPhotoPlant}></Image>
         <Text style={styles.textNoSavedPlants}>Once identified you will have the option of saving or discarding the result.</Text>
       </ScrollView>
       }
     </View>
-      
-    
   )
 }
-
-const styles = StyleSheet.create({
-  screenshotImage: {
-    width: '70%',
-    height: 160,
-    resizeMode: 'contain',
-    marginTop: 10,
-    marginLeft: 'auto',
-    marginRight: 'auto',
-  },
-  screenshotPlant: {
-    width: '70%',
-    height: 230,
-    resizeMode: 'contain',
-    marginLeft: 'auto',
-    marginRight: 'auto',
-    
-  },
-  textNoSavedPlants: {
-    color: 'black',
-    fontSize: 20,
-    marginTop: 10,
-    marginLeft: 20,
-    marginRight: 20,
-  },
-  centeredView: {
-    flex: 1,
-    marginTop: 22,
-  },
-  modalView: {
-    margin: 20,
-    backgroundColor: 'white',
-    borderRadius: 20,
-    padding: 35,
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
-    elevation: 5
-  },
-  modalText: {
-    marginBottom: 15,
-    fontSize: 24,
-    color: '#2196F3',
-    fontWeight: 'bold',
-    textDecorationLine: 'underline'
-  },
-  modalImage: {
-    width: 200,
-    height: 200,
-    resizeMode: 'cover',
-    marginBottom: 20
-  },
-  description: {
-    fontSize: 15
-  },
-  button: {
-    borderRadius: 20,
-    padding: 10,
-    elevation: 2,
-    margin: 10,
-    
-  },
-  buttonClose: {
-    width: 100,
-    backgroundColor: '#2196F3',
-    borderRadius: 5,
-    padding: 5,
-    justifyContent: 'center',
-  },
-  button2: {
-    backgroundColor: '#e32f45'
-  },
-  textStyle: {
-    color: 'white',
-    fontWeight: 'bold',
-    textAlign: 'center',
-    fontSize: 20
-  },
-  container: {
-    flex: 1,
-    marginBottom: 140,
-  },
-  scrollViewContainer: {
-    flex: 1,
-  },
-  image: {
-    height: 100,
-    width: 100,
-    resizeMode: 'cover',
-    marginBottom: 5,
-    borderRadius: 5
-  },
-  button: {  
-    flexDirection: 'row',
-    margin: 20,
-    
-  },
-  text: {
-    marginTop: 35,
-    marginLeft: 15,
-    fontSize: 20,
-  },
-  buttonsContainer: {
-    flexDirection: 'row',
-  }
-})

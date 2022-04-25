@@ -1,10 +1,11 @@
-import { StyleSheet, TextInput, View, Text, TouchableOpacity, ImageBackground } from 'react-native'
+import { TextInput, View, Text, TouchableOpacity, ImageBackground } from 'react-native'
 import React, { useState, useEffect } from 'react'
 import { auth } from '../firebase'
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged } from 'firebase/auth';
 import { useNavigation } from '@react-navigation/core';
 import image from '../assets/login_background.jpg';
 import SvgPlantLogo from '../assets/loginPlantIcon.js';
+import styles from '../styleSheets/LoginScreenStyle';
 
 const validator = require('validator');
 
@@ -106,72 +107,4 @@ const LoginScreen = () => {
   )
 }
 
-export default LoginScreen
-
-const styles = StyleSheet.create({
-  svgContainer: {
-    width: 75,
-    height: 75,
-    marginBottom: 20,
-  },  
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-  },
-  image: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  title: {
-    fontSize: 24,
-    textAlign: 'center',
-    marginBottom: 10,
-    color: 'white',
-    backgroundColor: 'black',
-    borderRadius: 5,
-    width: '50%',
-    marginLeft: 'auto',
-    marginRight: 'auto',
-  },  
-  inputContainer: {
-    width: '80%'
-  },
-  input: {
-    backgroundColor: 'white',
-    paddingHorizontal: 15,
-    paddingVertical: 10,
-    borderRadius: 10,
-    marginTop: 5,
-  },
-  buttonContainer: {
-    width: '60%',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginTop: 40
-  },
-  button: {
-    backgroundColor: '#097F0C',
-    width: '100%',
-    padding: 15,
-    borderRadius: 10,
-    alignItems: 'center'
-  }, 
-  buttonOutline: {
-    backgroundColor: 'white',
-    marginTop: 5,
-    borderColor: '#097F0C',
-    borderWidth: 2
-  },
-  buttonText: {
-    color: 'white',
-    fontWeight: '700',
-    fontSize: 16
-  },
-  buttonOutlineText: {
-    color: '#097F0C',
-    fontWeight: '700',
-    fontSize: 16
-  }
-
-})
+export default LoginScreen;

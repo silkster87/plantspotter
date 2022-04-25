@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View, TouchableOpacity, Alert, Pressable, Modal, Image, ActivityIndicator } from 'react-native'
+import { Text, View, TouchableOpacity, Alert, Pressable, Modal, Image, ActivityIndicator } from 'react-native'
 import React , { useState, useEffect, useRef } from 'react'
 import { Camera } from 'expo-camera';
 import { readAsStringAsync } from 'expo-file-system';
@@ -6,6 +6,7 @@ import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import { useIsFocused } from '@react-navigation/native';
 import cameraIcon from '../assets/camera_icon.png';
 import uploadIcon from '../assets/upload.png';
+import styles from '../styleSheets/CameraScreenStyle.js';
 import * as MediaLibrary from 'expo-media-library';
 import * as ImagePicker from 'expo-image-picker';
 
@@ -80,7 +81,7 @@ function CameraScreen() {
         body: JSON.stringify({'data' : result})
       }).then(res => res.json())
         .then(result => {
-          console.log('PLANT API DATA', result.data);
+          //console.log('PLANT API DATA', result.data);
           setPlantApiResult(result.data);
           setPlantName(result.data.suggestions[0].plant_name);
           setPlantImageUrl(result.data.images[0].url);
@@ -164,7 +165,7 @@ if (isFocusedCam) {
                  <Text style = {styles.textStyle}>Save</Text>
                </Pressable>
                <Pressable
-                 style={[styles.buttonModal, styles.buttonModalClose]}
+                 style={[styles.buttonModal, styles.buttonModalCloseCancel]}
                  onPress={() => {
                   setIsWaiting(!isWaiting); 
                   setModalVisible(!modalVisible)}}
@@ -208,87 +209,3 @@ if (isFocusedCam) {
 }
 
 export default CameraScreen;
-
-const styles = StyleSheet.create({
-  cameraIcon: {
-    width: 50,
-    height: 50,
-    tintColor: 'white',
-  },
-  centeredView: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginTop: 22
-  },
-  modalView: {
-    margin: 20,
-    backgroundColor: 'white',
-    borderRadius: 20,
-    padding: 35,
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
-    elevation: 5,
-  },
-  buttonView: {
-    justifyContent: 'center',
-    flexDirection: 'row',
-  },
-  modalImage: {
-    width: 220,
-    height: 220,
-    resizeMode: 'cover',
-    marginBottom: 20
-  },
-  modalText: {
-    marginBottom: 15,
-    textAlign: 'center',
-  },
-  textStyle: {
-    color: 'white',
-    fontWeight: 'bold',
-    textAlign: 'center',
-  },
-  buttonModal: {
-    borderRadius: 20,
-    padding: 10,
-    elevation: 2,
-    margin: 10,
-    width: 100
-  },
-  buttonModalClose: {
-    backgroundColor: '#2196F3',
-  },
-  container: {
-    flex: 1,
-  },
-  camera: {
-    flex: 1,
-  },
-  buttonContainer: {
-    flex: 1,
-    backgroundColor: 'transparent',
-    flexDirection: 'row',
-    paddingBottom : 150,
-    justifyContent: 'center'
-  },
-  button: {
-    flex: 1,
-    alignSelf: 'flex-end',
-    alignItems: 'center',
-    backgroundColor: '#097F0C',
-    borderRadius: 10,
-    marginLeft: 30,
-    marginRight: 30,
-  },
-  text: {
-    fontSize: 18,
-    color: 'white',
-  }
-})
