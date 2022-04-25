@@ -1,4 +1,4 @@
-import { Text, View, FlatList, Modal, Pressable, Image, ScrollView, TouchableOpacity, Linking } from 'react-native'
+import {  Text, View, FlatList, Modal, Pressable, Image, ScrollView, TouchableOpacity, Linking } from 'react-native'
 import React, { useState } from 'react'
 import { getAuth } from 'firebase/auth';
 import { useFocusEffect } from '@react-navigation/native';
@@ -14,9 +14,11 @@ export default function SavedScreen() {
   const BASE_URL = 'https://4992-78-147-211-58.eu.ngrok.io';
   
   //This is used to perform the getPlants again when navigating back to this screen
+  let isActive = true;
+
   useFocusEffect(
     React.useCallback(() => {
-      let isActive = true;
+      
       getPlants();
       return () => {
         isActive = false;
@@ -32,7 +34,7 @@ export default function SavedScreen() {
         body: JSON.stringify({data : auth.currentUser.email})
       }).then(res => res.json())
         .then(result => {
-          setPlantsList(sortPlantsByDate(result.data));
+          if (isActive) setPlantsList(sortPlantsByDate(result.data));
         })
         .catch(err => console.error('SAVED SCREEN NETWORK ERROR: ', err));
   }
