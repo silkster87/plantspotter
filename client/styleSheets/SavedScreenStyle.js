@@ -1,4 +1,5 @@
 import { StyleSheet } from 'react-native';
+import COLORS from '../theme.js';
 
 const styles = StyleSheet.create({
   screenshotImage: {
@@ -48,7 +49,7 @@ const styles = StyleSheet.create({
   modalText: {
     marginBottom: 15,
     fontSize: 24,
-    color: '#2196F3',
+    color: COLORS.modalClose,
     fontWeight: 'bold',
     textDecorationLine: 'underline'
   },
@@ -70,13 +71,13 @@ const styles = StyleSheet.create({
   },
   buttonClose: {
     width: 100,
-    backgroundColor: '#2196F3',
+    backgroundColor: COLORS.modalClose,
     borderRadius: 5,
     padding: 5,
     justifyContent: 'center',
   },
   button2: {
-    backgroundColor: '#e32f45'
+    backgroundColor: COLORS.focused,
   },
   textStyle: {
     color: 'white',

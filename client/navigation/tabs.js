@@ -6,46 +6,30 @@ import { StyleSheet, Text, View , Image, TouchableOpacity} from 'react-native';
 import savedIcon from '../assets/saved.png';
 import settingsIcon from '../assets/settings.png';
 import cameraIcon from '../assets/camera_icon.png';
+import COLORS from '../theme.js';
 
 const Tab = createBottomTabNavigator();
-const focusedColor = '#e32f45';
-const unfocusedColor = '#748c94';
+
 
 const Tabs = () => {
   return (
     <Tab.Navigator
       screenOptions={
-        {
-          tabBarShowLabel: false,
-          tabBarStyle: {
-            position: 'absolute',
-            bottom: 25,
-            left: 20,
-            right: 20,
-            elevation: 0,
-            backgroundColor: 'white',
-            borderRadius: 15,
-            height: 90,
-            ...styles.shadow
-          }
-        }
+        {tabBarShowLabel: false, tabBarStyle: styles.navigatorStyle}
       }>
       <Tab.Screen name="Saved" component={SavedScreen} options={
         {
           headerShown: false,
           tabBarIcon: ({focused}) => (
             <View style={{alignItems: 'center', justifyContent: 'center'}}>
-              <Image
-                source={savedIcon}
-                resizeMode='contain'
+              <Image source={savedIcon} resizeMode='contain'
                 style={{
                   width: 25,
                   height: 25,
-                  tintColor: focused ? focusedColor: unfocusedColor
+                  tintColor: focused ? COLORS.focused : COLORS.unfocused
                 }}
               />
-              <Text
-                style={{color: focused ? focusedColor : unfocusedColor, fontSize: 12}}>
+              <Text style={{color: focused ? COLORS.focused : COLORS.unfocused, fontSize: 12}}>
                   Saved
               </Text>
             </View>
@@ -57,18 +41,15 @@ const Tabs = () => {
         headerShown: false,
         tabBarIcon: ({focused}) => (
           <View style={{alignItems: 'center', justifyContent: 'center'}}>
-          <Image
-            source={cameraIcon}
-            resizeMode = 'contain'
+          <Image source={cameraIcon} resizeMode = 'contain'
             style={{
               width: 30,
               height: 30,
-              tintColor: focused ? focusedColor: unfocusedColor
+              tintColor: focused ? COLORS.focused: COLORS.unfocused
             }}/>
-            <Text
-                style={{color: focused ? focusedColor : unfocusedColor, fontSize: 12}}>
-                  Camera
-              </Text>
+            <Text style={{color: focused ? COLORS.focused : COLORS.unfocused, fontSize: 12}}>
+              Camera
+            </Text>
             </View>
         ),
       }}/>
@@ -77,17 +58,14 @@ const Tabs = () => {
           headerShown: false,
           tabBarIcon: ({focused}) => (
             <View style={{alignItems: 'center', justifyContent: 'center'}}>
-              <Image
-                source={settingsIcon}
-                resizeMode='contain'
+              <Image source={settingsIcon} resizeMode='contain'
                 style={{
                   width: 25,
                   height: 25,
-                  tintColor: focused ? focusedColor : unfocusedColor
+                  tintColor: focused ? COLORS.focused : COLORS.unfocused
                 }}
               />
-              <Text
-                style={{color: focused ? focusedColor : unfocusedColor, fontSize: 12}}>
+              <Text style={{color: focused ? COLORS.focused : COLORS.unfocused, fontSize: 12}}>
                   Settings
               </Text>
             </View>
@@ -100,16 +78,27 @@ const Tabs = () => {
 }
 
 const styles = StyleSheet.create({
-  shadow: {
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 10,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.5,
-    elevation: 5
+  navigatorStyle : {
+    position: 'absolute',
+            bottom: 25,
+            left: 20,
+            right: 20,
+            elevation: 0,
+            backgroundColor: 'white',
+            borderRadius: 15,
+            height: 90,
+            
+              shadowColor: '#000',
+              shadowOffset: {
+                width: 0,
+                height: 10,
+              },
+              shadowOpacity: 0.25,
+              shadowRadius: 3.5,
+              elevation: 5
+          
   }
+  
 })
 
 export default Tabs;

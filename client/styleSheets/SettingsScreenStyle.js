@@ -1,4 +1,5 @@
 import { StyleSheet } from 'react-native';
+import COLORS from '../theme.js';
 
 const styles = StyleSheet.create({
   centredView: {
@@ -40,7 +41,7 @@ const styles = StyleSheet.create({
     width: 100
   },
   buttonModalClose: {
-    backgroundColor: '#2196F3',
+    backgroundColor: COLORS.modalClose,
   },
   buttonContainer: {
     flexDirection: 'row',
@@ -54,7 +55,7 @@ const styles = StyleSheet.create({
     fontSize: 20,
   },
   button: {
-    backgroundColor: '#097F0C',
+    backgroundColor: COLORS.primary,
     width: '60%',
     padding: 15,
     borderRadius: 10,
@@ -62,7 +63,7 @@ const styles = StyleSheet.create({
     marginTop: 40
   }, 
   deleteButton: {
-    backgroundColor: '#e32f45',
+    backgroundColor: COLORS.focused,
     width: '60%',
     padding: 15,
     borderRadius: 10,
@@ -72,7 +73,7 @@ const styles = StyleSheet.create({
   buttonOutline: {
     backgroundColor: 'white',
     marginTop: 5,
-    borderColor: '#097F0C',
+    borderColor: COLORS.primary,
     borderWidth: 2
   },
   buttonText: {
@@ -81,7 +82,7 @@ const styles = StyleSheet.create({
     fontSize: 20
   },
   button2: {
-    backgroundColor: '#e32f45'
+    backgroundColor: COLORS.focused,
   }
 })
 

@@ -9,6 +9,7 @@ import uploadIcon from '../assets/upload.png';
 import styles from '../styleSheets/CameraScreenStyle.js';
 import * as MediaLibrary from 'expo-media-library';
 import * as ImagePicker from 'expo-image-picker';
+import COLORS from '../theme.js';
 
 import BASE_URL from '../baseUrl';
 
@@ -28,6 +29,7 @@ function CameraScreen() {
 
   useEffect(() => {
     (async () => {
+      
       const { status } = await Camera.requestCameraPermissionsAsync();
       setHasPermission(status === 'granted');
 
@@ -37,7 +39,8 @@ function CameraScreen() {
           setLoggedUserEmail(user.email);
         }
       });
-
+      
+      
     })();
   }, []);
 
@@ -188,7 +191,7 @@ if (isFocusedCam) {
              style = {styles.cameraIcon}
            />
          </TouchableOpacity>
-         <ActivityIndicator animating={isWaiting} size= { 75 } color = '#e32f45'/>
+         <ActivityIndicator animating={isWaiting} size= { 75 } color = {COLORS.focused} />
          <TouchableOpacity style={styles.button} 
            onPress={pickImage}>
            <Image 

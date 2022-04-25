@@ -5,17 +5,14 @@ import { useFocusEffect } from '@react-navigation/native';
 import screenshotCamera from '../assets/screenshot_camera.jpg';
 import screenshotPhotoPlant from '../assets/screenshot_photoplant.jpg';
 import styles from '../styleSheets/SavedScreenStyle';
+import BASE_URL from '../baseUrl';
 
 export default function SavedScreen() {
   const [plantsList, setPlantsList] = useState([]);
   const [modalVisible, setModalVisible] = useState(false);
   const [plantItem, setPlantItem] = useState({});
-
-  const BASE_URL = 'https://4992-78-147-211-58.eu.ngrok.io';
   
   //This is used to perform the getPlants again when navigating back to this screen
-  
-
   useFocusEffect(
     React.useCallback(() => {
       let isActive = true;

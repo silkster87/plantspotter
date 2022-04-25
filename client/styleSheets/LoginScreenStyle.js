@@ -1,4 +1,5 @@
 import { StyleSheet } from 'react-native';
+import COLORS from '../theme.js';
 
 const styles = StyleSheet.create({
   svgContainer: {
@@ -43,7 +44,7 @@ const styles = StyleSheet.create({
     marginTop: 40
   },
   button: {
-    backgroundColor: '#097F0C',
+    backgroundColor: COLORS.primary,
     width: '100%',
     padding: 15,
     borderRadius: 10,
@@ -52,7 +53,7 @@ const styles = StyleSheet.create({
   buttonOutline: {
     backgroundColor: 'white',
     marginTop: 5,
-    borderColor: '#097F0C',
+    borderColor: COLORS.primary,
     borderWidth: 2
   },
   buttonText: {
@@ -61,7 +62,7 @@ const styles = StyleSheet.create({
     fontSize: 16
   },
   buttonOutlineText: {
-    color: '#097F0C',
+    color: COLORS.primary,
     fontWeight: '700',
     fontSize: 16
   }

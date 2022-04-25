@@ -1,6 +1,7 @@
 import React from 'react';
 import Tabs from '../navigation/tabs';
 import { StatusBar } from 'react-native';
+import COLORS from '../theme.js';
 
 const HomeScreen = () => {
 //This is the home screen with the heading 'Plant Spotter' It has navigation tabs allowing user
@@ -8,7 +9,7 @@ const HomeScreen = () => {
   
   return (
     <>
-      <StatusBar barStyle='light-content' backgroundColor='#097F0C'></StatusBar>
+      <StatusBar barStyle='light-content' backgroundColor={COLORS.primary}></StatusBar>
       <Tabs/>
     </>
   )

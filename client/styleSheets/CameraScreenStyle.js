@@ -1,4 +1,5 @@
 import { StyleSheet } from 'react-native';
+import COLORS from '../theme.js';
 
 const styles = StyleSheet.create({
   cameraIcon: {
@@ -54,10 +55,10 @@ const styles = StyleSheet.create({
     width: 100
   },
   buttonModalClose: {
-    backgroundColor: '#2196F3',
+    backgroundColor: COLORS.modalClose,
   },
   buttonModalCloseCancel: {
-    backgroundColor: '#e32f45'
+    backgroundColor: COLORS.focused,
   },
   container: {
     flex: 1,
@@ -76,7 +77,7 @@ const styles = StyleSheet.create({
     flex: 1,
     alignSelf: 'flex-end',
     alignItems: 'center',
-    backgroundColor: '#097F0C',
+    backgroundColor: COLORS.primary,
     borderRadius: 10,
     marginLeft: 30,
     marginRight: 30,
