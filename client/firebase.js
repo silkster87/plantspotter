@@ -8,12 +8,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 //You can set up your own firebase config: https://firebase.google.com/
 //This config below will be disabled to prevent users using it.
 const firebaseConfig = {
-  apiKey: "AIzaSyAhEStmipR6R_XaBWMHMvwiMbfAm3FoWAM",
-  authDomain: "plantspotter-f4687.firebaseapp.com",
-  projectId: "plantspotter-f4687",
-  storageBucket: "plantspotter-f4687.appspot.com",
-  messagingSenderId: "603129080160",
-  appId: "1:603129080160:web:df280459be3834ecd51605"
+  //ADD your own config here from FIREBASE
 };
 
 // Initialize Firebase

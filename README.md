@@ -24,7 +24,9 @@ To run this clone the repo and run <code>npm install</code> in both the `client`
 
 1. You will need an API key from [plant.id API](https://plant.id/). API documentation can be found [here](https://github.com/flowerchecker/Plant-id-API). Edit the API key in `server/ApiService.js`
 
-2. It is best to setup an NGROK server which is a public server that mimics your localhost for the back-end. Sign up and instructions [here](https://ngrok.com/). When running an ngrok server you will get the url. Change the url in `client/baseUrl.js`
+2. You will need to setup a firebase project for the authentication and modify `client/firebase.js` with your own firebase configuration. Head over to [firebase](https://firebase.google.com/) for instructions.
+
+3. It is best to setup an NGROK server which is a public server that mimics your localhost for the back-end. Sign up and instructions [here](https://ngrok.com/). When running an ngrok server you will get the url. Change the url in `client/baseUrl.js`
 
 3. It is recommended to use the expo-cli to run the app. To download this run `npm install -g expo-cli` 
 
