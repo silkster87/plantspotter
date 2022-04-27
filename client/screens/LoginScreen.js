@@ -15,6 +15,10 @@ const LoginScreen = () => {
 
   const navigation = useNavigation();
 
+  //Firebase authentication works on this app as of now but when loading up you get
+  //a warning: 'Async Storage has been extracted from react-native core...'
+  //https://github.com/firebase/firebase-js-sdk/issues/1847
+  
   useEffect(() => {
     
     const unsubscribe = onAuthStateChanged(auth, user =>{
