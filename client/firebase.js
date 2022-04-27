@@ -1,12 +1,12 @@
 // Import the functions you need from the SDKs you need
 //import { initializeApp } from 'firebase/app';
-import { initializeApp } from 'firebase/app';
-import { getAuth } from 'firebase/auth';
+import { initializeApp, FirebaseApp, getApps, getApp } from 'firebase/app';
+import { getAuth , Auth, initializeAuth } from 'firebase/auth';
+import { getReactNativePersistence } from 'firebase/auth/react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-// TODO: Add SDKs for Firebase products that you want to use
-// https://firebase.google.com/docs/web/setup#available-libraries
-
-// Your web app's Firebase configuration
+//You can set up your own firebase config: https://firebase.google.com/
+//This config below will be disabled to prevent users using it.
 const firebaseConfig = {
   apiKey: "AIzaSyAhEStmipR6R_XaBWMHMvwiMbfAm3FoWAM",
   authDomain: "plantspotter-f4687.firebaseapp.com",
@@ -17,8 +17,20 @@ const firebaseConfig = {
 };
 
 // Initialize Firebase
+//This setup is to use the AsyncStorage from @react-native-async-storage/async-storage
+//otherwise there is a warning that AsyncStorage will be removed from 'react-native' in a later release.
+//https://github.com/firebase/firebase-js-sdk/issues/1847
 
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
+let app;
+let auth;
+if (getApps().length < 1) {
+  app = initializeApp(firebaseConfig);
+  auth = initializeAuth(app, {
+    persistence: getReactNativePersistence(AsyncStorage),
+  });
+} else {
+  app = getApp();
+  auth = getAuth(app);
+}
 
 module.exports = { auth };
