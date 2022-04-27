@@ -26,9 +26,6 @@ function CameraScreen( {navigation} ) {
   const [isWaiting, setIsWaiting] = useState(false);
   const cameraRef = useRef(null);
   const isFocused = useIsFocused();
-
-  const appState = useRef(AppState.currentState);
-
   
 
   useEffect(() => {
@@ -54,11 +51,15 @@ function CameraScreen( {navigation} ) {
 
   const _handleAppStateChange = nextAppState => {
     // if (appState.current.match(/inactive|background/)) {
-    //   console.log('Am I focused? ', isFocused);
     //   navigation.navigate('Saved');
     // }
-  
-    navigation.navigate('Saved');
+    // appState.current = nextAppState;
+    
+    //FIX ME - if the user uses the camera and then turns phone/app off and on again
+    //you get an error similar to: https://stackoverflow.com/questions/71247918/parameter-specified-as-non-null-is-null-method-kotlin-o0-d-t-e
+    //This is kind of a workaround by navigating to the 'Saved' screen but expected
+    //behaviour is to return back to the Camera Screen.
+    navigation.navigate('Saved');    
     
   };
 
