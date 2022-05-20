@@ -37,6 +37,8 @@ To run this clone the repo and run <code>npm install</code> in both the `client`
 ## Tech Stack
 
 For this solo project the following was used:
+
+![React Native](https://img.shields.io/badge/react_native-%2320232a.svg?style=for-the-badge&logo=react&logoColor=%2361DAFB) ![Expo](https://img.shields.io/badge/expo-1C1E24?style=for-the-badge&logo=expo&logoColor=#D04A37) ![Firebase](https://img.shields.io/badge/firebase-%23039BE5.svg?style=for-the-badge&logo=firebase) 	![MongoDB](https://img.shields.io/badge/MongoDB-%234ea94b.svg?style=for-the-badge&logo=mongodb&logoColor=white) 
 1. [React Native](https://reactnative.dev/) with [Expo](https://expo.dev/)
 2. [Firebase](https://firebase.google.com/) Authentication
 3. [PlantID API](https://plant.id/) for plant identification
