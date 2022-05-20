@@ -1,7 +1,7 @@
 # Plant Spotter
 An app for identifying plants. By taking a picture or uploading a photo of a plant it will suggest the best result from the [plant.id API](https://plant.id/).
 
-This app was a solo project for the CodeWorks coding bootcamp and was built within a week. Presentation of the app is [here](https://www.youtube.com/watch?v=9dDHbwZbm78)
+This app was a solo project for the [CodeWorks](https://codeworks.me/) coding bootcamp and was built within a week. Presentation of the app is [here](https://www.youtube.com/watch?v=9dDHbwZbm78)
 
 
 
