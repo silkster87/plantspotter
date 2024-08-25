@@ -11,6 +11,8 @@ export default function SavedScreen() {
   const [plantsList, setPlantsList] = useState([]);
   const [modalVisible, setModalVisible] = useState(false);
   const [plantItem, setPlantItem] = useState({});
+  const [errorModal, setErrorModal] = useState(false);
+  const [errorMsg, setErrorMsg] = useState('');
   
   //This is used to perform the getPlants again when navigating back to this screen
   useFocusEffect(
@@ -33,7 +35,10 @@ export default function SavedScreen() {
         .then(result => {
           if (isActive) setPlantsList(result.data);
         })
-        .catch(err => console.error('SAVED SCREEN NETWORK ERROR: ', err));
+        .catch(err => {
+          setErrorMsg(`Error in network request: ${err}`);
+          setErrorModal(true);
+        });
   }
 
 
@@ -89,7 +94,7 @@ export default function SavedScreen() {
                 style={[styles.button, styles.buttonClose]}
                 onPress={() => setModalVisible(!modalVisible)}
               >
-                <Text style={styles.textStyle}>Ok</Text>
+                <Text style={styles.textStyle}>OK</Text>
               </Pressable>
               <Pressable
                 style={[styles.button, styles.buttonClose, styles.button2]}
@@ -100,6 +105,33 @@ export default function SavedScreen() {
             </View>
           </View>
         </ScrollView>
+      </Modal>
+      <Modal
+        animationType='slide'
+        transparent
+        visible={errorModal}
+        onRequestClose={() => {
+          setErrorMsg('');
+          setErrorModal(false);
+        }}
+      >
+        <View style={{ ...styles.centeredView, justifyContent: 'center' }}>
+          <View style={styles.modalView}>
+            <Text>
+              {errorMsg}
+            </Text>
+            <View style={styles.buttonsContainer}>
+              <Pressable
+                style={styles.buttonClose}
+                onPress={() => {
+                  setErrorMsg('');
+                  setErrorModal(false);
+                }}>
+                  <Text style={styles.textStyle}>OK</Text>
+              </Pressable>
+            </View>
+          </View>
+        </View>
       </Modal>
       {plantsList.length > 0 && 
       <FlatList data={plantsList} renderItem={renderItem} keyExtractor={item => item._id}/>
