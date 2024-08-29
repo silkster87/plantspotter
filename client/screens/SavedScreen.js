@@ -1,6 +1,8 @@
 import {  Text, View, FlatList, Modal, Pressable, Image, ScrollView, TouchableOpacity, Linking } from 'react-native'
 import React, { useState } from 'react'
 import { getAuth } from 'firebase/auth';
+import { collection, query, where, getDocs, doc, deleteDoc } from 'firebase/firestore';
+import { db } from '../firebase';
 import { useFocusEffect } from '@react-navigation/native';
 import screenshotCamera from '../assets/screenshot_camera.jpg';
 import screenshotPhotoPlant from '../assets/screenshot_photoplant.jpg';
@@ -13,6 +15,7 @@ export default function SavedScreen() {
   const [plantItem, setPlantItem] = useState({});
   const [errorModal, setErrorModal] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
+  const auth = getAuth();
   
   //This is used to perform the getPlants again when navigating back to this screen
   useFocusEffect(
@@ -26,49 +29,50 @@ export default function SavedScreen() {
   );
 
   async function getPlants(isActive) {
-    const auth = getAuth();
-      fetch(`${BASE_URL}/plants`, {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({data : auth.currentUser.email})
-      }).then(res => res.json())
-        .then(result => {
-          if (isActive) setPlantsList(result.data);
+    try {
+      const q = query(collection(db, 'plant-records'), where('userEmail', '==', auth.currentUser.email));
+      const querySnapshot = await getDocs(q);
+      if (isActive) {
+        const data = [];
+        querySnapshot.forEach(doc => {
+          data.push({ id: doc.id, ...doc.data() })
         })
-        .catch(err => {
-          setErrorMsg(`Error in network request: ${err}`);
-          setErrorModal(true);
-        });
+        setPlantsList(data);
+      }
+    } catch (error) {
+      setErrorMsg(`Error fetching saved plants: ${error.message}`);
+      setErrorModal(true);
+    }
   }
 
 
   function showPlantDetails(id) {
-    setPlantItem(plantsList.find(plant => plant._id == id));
+    setPlantItem(plantsList.find(plant => plant.id == id));
     setModalVisible(true);
   }
 
   async function removePlantFromList(id) {
-    console.log('Plant ID to remove: ', id);
-    await fetch(`${BASE_URL}/plantItem/${id}`, {
-      method: 'DELETE',
-    }).then(res => res.json())
-      .then(result => {
-        console.log('Item deleted: ', result);
-        setPlantsList( currPlants => {
-          return currPlants.filter( plant => plant._id !== id);
-        } );
-      })
+    try {
+      await deleteDoc(doc(db, 'plant-records', id));
+      setPlantsList( currPlants => {
+        return currPlants.filter(plant => plant.id !== id);
+      });
+    } catch (error) {
+      setErrorMsg(error.message);
+      setErrorModal(true);
+    }
     setModalVisible(!modalVisible);
   }
 
-  const renderItem = ({ item }) => <TouchableOpacity 
-                                        style={styles.button} 
-                                        key={item._id} 
-                                        onPress={() => showPlantDetails(item._id)}
-                                    >
-                                    <Image style={styles.image} source={{uri: item.imageUrl}}></Image>
-                                    <Text style={styles.text}>{item.title}</Text>
-                                    </TouchableOpacity>
+  const renderItem = ({ item }) =>
+    <TouchableOpacity 
+      style={styles.button} 
+      key={item.id} 
+      onPress={() => showPlantDetails(item.id)}
+    >
+      <Image style={styles.image} source={{uri: item.imageUrl}}></Image>
+      <Text style={styles.text}>{item.title}</Text>
+    </TouchableOpacity>
 
   return (
     
@@ -98,7 +102,7 @@ export default function SavedScreen() {
               </Pressable>
               <Pressable
                 style={[styles.button, styles.buttonClose, styles.button2]}
-                onPress={() => removePlantFromList(plantItem._id)}
+                onPress={() => removePlantFromList(plantItem.id)}
               >
                 <Text style={styles.textStyle}>Delete</Text>
               </Pressable>
@@ -134,7 +138,7 @@ export default function SavedScreen() {
         </View>
       </Modal>
       {plantsList.length > 0 && 
-      <FlatList data={plantsList} renderItem={renderItem} keyExtractor={item => item._id}/>
+      <FlatList data={plantsList} renderItem={renderItem} keyExtractor={item => item.id}/>
       }
       {plantsList.length == 0 && 
       <ScrollView style={styles.scrollViewContainer}>
