@@ -57,6 +57,13 @@ const styles = StyleSheet.create({
   buttonModalClose: {
     backgroundColor: COLORS.modalClose,
   },
+  buttonClose: {
+    width: 100,
+    backgroundColor: COLORS.modalClose,
+    borderRadius: 5,
+    padding: 5,
+    justifyContent: 'center',
+  },
   buttonModalCloseCancel: {
     backgroundColor: COLORS.focused,
   },
