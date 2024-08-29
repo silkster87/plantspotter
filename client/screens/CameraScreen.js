@@ -1,8 +1,8 @@
 import { Text, View, TouchableOpacity, Alert, Pressable, Modal, Image, ActivityIndicator, AppState } from 'react-native'
-import React , { useState, useEffect, useRef } from 'react'
-import { Camera } from 'expo-camera';
+import React , { useState, useRef } from 'react'
+import { CameraView, useCameraPermissions } from 'expo-camera';
 import { readAsStringAsync } from 'expo-file-system';
-import { getAuth, onAuthStateChanged } from 'firebase/auth';
+// import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import { useIsFocused } from '@react-navigation/native';
 import cameraIcon from '../assets/camera_icon.png';
 import uploadIcon from '../assets/upload.png';
@@ -15,8 +15,7 @@ import BASE_URL from '../baseUrl';
 
 function CameraScreen( {navigation} ) {
 
-  const [hasPermission, setHasPermission] = useState(null);
-  const [type, setType] = useState(Camera.Constants.Type.back);
+  // const [hasPermission, setHasPermission] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
   const [plantName, setPlantName] = useState('');
   const [plantImageUrl, setPlantImageUrl] = useState('');
@@ -24,30 +23,45 @@ function CameraScreen( {navigation} ) {
   const [loggedUserEmail, setLoggedUserEmail] = useState(null);
   const [isFocusedCam, setIsFocusedCam] = useState(true);
   const [isWaiting, setIsWaiting] = useState(false);
+  const [errorModal, setErrorModal] = useState(false);
+  const [errorMsg, setErrorMsg] = useState('');
   const cameraRef = useRef(null);
   const isFocused = useIsFocused();
+  const [permission, requestPermission] = useCameraPermissions();
+  const [permissionResponse, requestPermissionMedia] = MediaLibrary.usePermissions();
+
+  if (!permission) return <View />
+
+  if (!permission.granted) {
+    return (
+      <View style={styles.container}>
+        <Text style={styles.message}>We need your permission to show the camera</Text>
+        <Button onPress={requestPermission} title="grant permission" />
+      </View>
+    ); 
+  }
   
 
-  useEffect(() => {
-    (async () => {
-      AppState.addEventListener('change', _handleAppStateChange);
+  // useEffect(() => {
+  //   (async () => {
+  //     AppState.addEventListener('change', _handleAppStateChange);
 
-      const { status } = await Camera.requestCameraPermissionsAsync();
-      setHasPermission(status === 'granted');
+  //     // const { status } = await Camera.requestCameraPermissionsAsync();
+  //     // setHasPermission(status === 'granted');
 
-      const auth = getAuth();
-      onAuthStateChanged(auth, (user) => {
-        if (user){
-          setLoggedUserEmail(user.email);
-        }
-      });
+  //     const auth = getAuth();
+  //     onAuthStateChanged(auth, (user) => {
+  //       if (user){
+  //         setLoggedUserEmail(user.email);
+  //       }
+  //     });
 
-      return () => {
-        AppState.remove('change', _handleAppStateChange);
-      }
+  //     return () => {
+  //       AppState.remove('change', _handleAppStateChange);
+  //     }
       
-    })();
-  }, []);
+  //   })();
+  // }, []);
 
   const _handleAppStateChange = nextAppState => {
     // if (appState.current.match(/inactive|background/)) {
@@ -63,8 +77,8 @@ function CameraScreen( {navigation} ) {
     
   };
 
-  if (hasPermission === null) return <View/>;
-  if (hasPermission === false) return <Text>No access to camera</Text>
+  // if (hasPermission === null) return <View/>;
+  // if (hasPermission === false) return <Text>No access to camera</Text>
 
   const takePhoto = async () => {
     if (cameraRef) {
@@ -76,28 +90,35 @@ function CameraScreen( {navigation} ) {
         });
         return photo;
       } catch (error) {
-        console.error(error);
+        setErrorMsg(error.message);
+        setErrorModal(true);
       }
     }
   }
 
   const identifyPlantFromPhoto = async () => {
     const r = await takePhoto();
+    if (permissionResponse.status !== 'granted') {
+      await requestPermissionMedia();
+    }
     MediaLibrary.saveToLibraryAsync(r.uri);
     fetchPlantDetailsFromAPI(r.uri);
   }
 
   const fetchPlantDetailsFromAPI = async (uri) => {
-    setIsWaiting(!isWaiting);
+    setIsWaiting(true);
     let result = null;
 
     await readAsStringAsync(uri, {encoding: 'base64'})
       .then((response) => {
         result = response;
       })
-      .catch((error) => console.error('ERROR READING STRING: ', error.message));
+      .catch((error) => {
+        setErrorMsg(`Error reading string: ${error.message}`);
+        setErrorModal(true);
+      });
 
-    fetch(`${BASE_URL}/plantLookUp`, {
+    fetch(process.env.EXPO_LOOKUP_PLANT_URL, {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({'data' : result})
@@ -107,10 +128,16 @@ function CameraScreen( {navigation} ) {
           setPlantApiResult(result.data);
           setPlantName(result.data.suggestions[0].plant_name);
           setPlantImageUrl(result.data.images[0].url);
-          setIsWaiting(!isWaiting);
+          setIsWaiting(false);
           setModalVisible(true);
         })
-        .catch(error => Alert.alert('ERROR IN PLANT LOOK UP', error.message));
+        .catch(error => {
+          setIsWaiting(false);
+          setErrorMsg(`Error in plant lookup: ${error.message}`);
+          setErrorModal(true);
+        });
+    
+    
   }
 
 
@@ -124,15 +151,19 @@ function CameraScreen( {navigation} ) {
       plantInfoUrl: plantApiResult.suggestions[0].plant_details.url
     }
 
-    fetch(`${BASE_URL}/save`, {
+    fetch(process.env.EXPO_SAVEPLANT_URL, {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
       body: JSON.stringify({ data : plantItemToDB})
     }).then(res => res.json())
       .then(result => {
-        console.log('Saved', result.data.title);
+        setErrorMsg(`Saved ${result.data.title}`);
+        setErrorModal(true);
       })
-      .catch(error => console.error('ERROR SAVING REQUEST: ' , error))
+      .catch(error => {
+        setErrorMsg(`Error saving plant: ${error.message}`);
+        setErrorModal(true);
+      });
 
       setIsWaiting(!isWaiting);
       setModalVisible(!modalVisible);
@@ -158,9 +189,7 @@ function CameraScreen( {navigation} ) {
   
 if (isFocusedCam) {
   return (
-    
     <View style={styles.container}>
-
        <Modal
          style={styles.centeredView}
          animationType="slide"
@@ -198,7 +227,7 @@ if (isFocusedCam) {
            </View>
          </View>
        </Modal>
-      { isFocused && <Camera style={styles.camera} type={type} ref={cameraRef}>
+      { isFocused && <CameraView style={styles.camera} facing="back" ref={cameraRef}>
         
        <View style={styles.buttonContainer}>
        
@@ -220,8 +249,34 @@ if (isFocusedCam) {
            />
          </TouchableOpacity>
        </View>
-     </Camera> }
-     
+     </CameraView> }
+     <Modal
+        animationType='slide'
+        transparent
+        visible={errorModal}
+        onRequestClose={() => {
+          setErrorMsg('');
+          setErrorModal(false);
+        }}
+      >
+        <View style={{ ...styles.centeredView, justifyContent: 'center' }}>
+          <View style={styles.modalView}>
+            <Text>
+              {errorMsg}
+            </Text>
+            <View>
+              <Pressable
+                style={styles.buttonClose}
+                onPress={() => {
+                  setErrorMsg('');
+                  setErrorModal(false);
+                }}>
+                  <Text style={styles.textStyle}>OK</Text>
+              </Pressable>
+            </View>
+          </View>
+        </View>
+      </Modal>
    </View> 
  );
 } else {
