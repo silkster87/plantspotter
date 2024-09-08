@@ -3,6 +3,7 @@
 import { initializeApp } from 'firebase/app';
 import { initializeFirestore } from 'firebase/firestore';
 import { initializeAuth, getReactNativePersistence } from 'firebase/auth';
+import { getFunctions } from 'firebase/functions';
 import ReactNativeAsyncStorage from '@react-native-async-storage/async-storage';
 
 //You can set up your own firebase config: https://firebase.google.com/
@@ -24,5 +25,6 @@ const db = initializeFirestore(app, {
   experimentalForceLongPolling: true,
   useFetchStreams: false
 })
+const functions = getFunctions(app);
 
-module.exports = { auth, db };
+module.exports = { auth, db, functions };
