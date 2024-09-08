@@ -13,7 +13,13 @@
         "photosPermission": "Allow PlantSpotter to access your photos.",
         "savePhotosPermission": "Allow PlantSpotter to save photos.",
         "isAccessMediaLocationEnabled": true
-      }]
+      }],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "The app accesses your photos to upload and identify plants."
+        }
+      ]
     ],
     "splash": {
       "image": "./assets/splash.png",
