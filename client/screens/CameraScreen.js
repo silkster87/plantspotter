@@ -20,7 +20,6 @@ function CameraScreen( {navigation} ) {
   const [plantImageUrl, setPlantImageUrl] = useState('');
   const [plantApiResult, setPlantApiResult] = useState({});
   const [plantDateTime, setPlantDateTime] = useState('');
-  const [loggedUserEmail, setLoggedUserEmail] = useState(null);
   const [isFocusedCam, setIsFocusedCam] = useState(true);
   const [isWaiting, setIsWaiting] = useState(false);
   const [errorModal, setErrorModal] = useState(false);

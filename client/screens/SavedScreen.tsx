@@ -1,21 +1,21 @@
 import {  Text, View, FlatList, Modal, Pressable, Image, ScrollView, TouchableOpacity, Linking } from 'react-native'
 import React, { useState } from 'react'
-import { getAuth } from 'firebase/auth';
+import { getAuth, type Auth } from 'firebase/auth';
 import { collection, query, where, getDocs, doc, deleteDoc } from 'firebase/firestore';
 import { db } from '../firebase';
 import { useFocusEffect } from '@react-navigation/native';
 import screenshotCamera from '../assets/screenshot_camera.jpg';
 import screenshotPhotoPlant from '../assets/screenshot_photoplant.jpg';
 import styles from '../styleSheets/SavedScreenStyle';
-import BASE_URL from '../baseUrl';
+import { IPlantRecord } from '../interfaces';
 
 export default function SavedScreen() {
-  const [plantsList, setPlantsList] = useState([]);
+  const [plantsList, setPlantsList] = useState<IPlantRecord[]>([]);
   const [modalVisible, setModalVisible] = useState(false);
-  const [plantItem, setPlantItem] = useState({});
-  const [errorModal, setErrorModal] = useState(false);
-  const [errorMsg, setErrorMsg] = useState('');
-  const auth = getAuth();
+  const [plantItem, setPlantItem] = useState<IPlantRecord>();
+  const [errorModal, setErrorModal] = useState<boolean>(false);
+  const [errorMsg, setErrorMsg] = useState<string>('');
+  const auth: Auth = getAuth();
   
   //This is used to perform the getPlants again when navigating back to this screen
   useFocusEffect(
@@ -28,43 +28,53 @@ export default function SavedScreen() {
     }, [])
   );
 
-  async function getPlants(isActive) {
+  async function getPlants(isActive: boolean) {
     try {
-      const q = query(collection(db, 'plant-records'), where('userEmail', '==', auth.currentUser.email));
+      const q = query(collection(db, 'plant-records'), where('userEmail', '==', auth?.currentUser?.email));
       const querySnapshot = await getDocs(q);
       if (isActive) {
-        const data = [];
+        const data: IPlantRecord[] = [];
         querySnapshot.forEach(doc => {
-          data.push({ id: doc.id, ...doc.data() })
+          data.push({ id: doc.id, ...doc.data() } as IPlantRecord)
         })
         setPlantsList(data);
       }
     } catch (error) {
-      setErrorMsg(`Error fetching saved plants: ${error.message}`);
+      if (error instanceof Error) {
+        setErrorMsg(`Error fetching saved plants: ${error.message}`);
+      } else {
+        setErrorMsg(`Error fetching saved plants`);
+      }
+        
       setErrorModal(true);
     }
   }
 
 
-  function showPlantDetails(id) {
-    setPlantItem(plantsList.find(plant => plant.id == id));
+  function showPlantDetails(id: string) {
+    setPlantItem(plantsList?.find(plant => plant.id == id) as IPlantRecord);
     setModalVisible(true);
   }
 
-  async function removePlantFromList(id) {
+  async function removePlantFromList(id: string) {
     try {
       await deleteDoc(doc(db, 'plant-records', id));
       setPlantsList( currPlants => {
         return currPlants.filter(plant => plant.id !== id);
       });
     } catch (error) {
-      setErrorMsg(error.message);
+      if (error instanceof Error) {
+        setErrorMsg(`Error removing plant from list: ${error.message}`);
+      } else {
+        setErrorMsg('Error removing plant from list.');
+      }
+      
       setErrorModal(true);
     }
     setModalVisible(!modalVisible);
   }
 
-  const renderItem = ({ item }) =>
+  const renderItem = ({ item }: { item: IPlantRecord }) =>
     <TouchableOpacity 
       style={styles.button} 
       key={item.id} 
@@ -89,10 +99,16 @@ export default function SavedScreen() {
           <View style={styles.modalView}>
             <Image
               style={styles.modalImage}
-              source={{uri: plantItem.imageUrl}}
+              source={{uri: plantItem?.imageUrl}}
             ></Image>
-            <Text style={styles.modalText} onPress={() => Linking.openURL(plantItem.plantInfoUrl)}>{plantItem.title}</Text>
-            <Text style={styles.description}>{plantItem.description}</Text>
+            <Text
+              style={styles.modalText}
+              onPress={() => {
+                if (plantItem?.plantInfoUrl)
+                  Linking.openURL(plantItem?.plantInfoUrl);}}>
+                {plantItem?.title}
+            </Text>
+            <Text style={styles.description}>{plantItem?.description}</Text>
             <View style={styles.buttonsContainer}>
               <Pressable
                 style={[styles.button, styles.buttonClose]}
@@ -102,7 +118,10 @@ export default function SavedScreen() {
               </Pressable>
               <Pressable
                 style={[styles.button, styles.buttonClose, styles.button2]}
-                onPress={() => removePlantFromList(plantItem.id)}
+                onPress={() => {
+                  if (plantItem?.id)
+                    removePlantFromList(plantItem?.id);
+                }}
               >
                 <Text style={styles.textStyle}>Delete</Text>
               </Pressable>
@@ -143,9 +162,9 @@ export default function SavedScreen() {
       {plantsList.length == 0 && 
       <ScrollView style={styles.scrollViewContainer}>
         <Text style={styles.textNoSavedPlants}>You have no saved plants.</Text>
-          <Image style={styles.screenshotImage} source={screenshotCamera}></Image>
+          <Image style={styles.screenshotImage} source={require('../assets/screenshot_camera.jpg')}></Image>
         <Text style={styles.textNoSavedPlants}>Click on the Camera Icon to take picture or upload a plant.</Text>
-          <Image style={styles.screenshotPlant} source={screenshotPhotoPlant}></Image>
+          <Image style={styles.screenshotPlant} source={require('../assets/screenshot_photoplant.jpg')}></Image>
         <Text style={styles.textNoSavedPlants}>Once identified you will have the option of saving or discarding the result.</Text>
       </ScrollView>
       }
