@@ -2,7 +2,8 @@ import { Text, View, TouchableOpacity, Alert, Pressable, Modal, Image, ActivityI
 import React , { useState, useRef } from 'react'
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { readAsStringAsync } from 'expo-file-system';
-// import { getAuth, onAuthStateChanged } from 'firebase/auth';
+import { getAuth } from 'firebase/auth';
+import { getFunctions, httpsCallable } from 'firebase/functions'; 
 import { useIsFocused } from '@react-navigation/native';
 import cameraIcon from '../assets/camera_icon.png';
 import uploadIcon from '../assets/upload.png';
@@ -11,8 +12,6 @@ import * as MediaLibrary from 'expo-media-library';
 import * as ImagePicker from 'expo-image-picker';
 import COLORS from '../theme.js';
 
-import BASE_URL from '../baseUrl';
-
 function CameraScreen( {navigation} ) {
 
   // const [hasPermission, setHasPermission] = useState(null);
@@ -20,6 +19,7 @@ function CameraScreen( {navigation} ) {
   const [plantName, setPlantName] = useState('');
   const [plantImageUrl, setPlantImageUrl] = useState('');
   const [plantApiResult, setPlantApiResult] = useState({});
+  const [plantDateTime, setPlantDateTime] = useState('');
   const [loggedUserEmail, setLoggedUserEmail] = useState(null);
   const [isFocusedCam, setIsFocusedCam] = useState(true);
   const [isWaiting, setIsWaiting] = useState(false);
@@ -29,6 +29,7 @@ function CameraScreen( {navigation} ) {
   const isFocused = useIsFocused();
   const [permission, requestPermission] = useCameraPermissions();
   const [permissionResponse, requestPermissionMedia] = MediaLibrary.usePermissions();
+  const functions = getFunctions();
 
   if (!permission) return <View />
 
@@ -40,45 +41,11 @@ function CameraScreen( {navigation} ) {
       </View>
     ); 
   }
-  
 
-  // useEffect(() => {
-  //   (async () => {
-  //     AppState.addEventListener('change', _handleAppStateChange);
 
-  //     // const { status } = await Camera.requestCameraPermissionsAsync();
-  //     // setHasPermission(status === 'granted');
-
-  //     const auth = getAuth();
-  //     onAuthStateChanged(auth, (user) => {
-  //       if (user){
-  //         setLoggedUserEmail(user.email);
-  //       }
-  //     });
-
-  //     return () => {
-  //       AppState.remove('change', _handleAppStateChange);
-  //     }
-      
-  //   })();
-  // }, []);
-
-  const _handleAppStateChange = nextAppState => {
-    // if (appState.current.match(/inactive|background/)) {
-    //   navigation.navigate('Saved');
-    // }
-    // appState.current = nextAppState;
-    
-    //FIX ME - if the user uses the camera and then turns phone/app off and on again
-    //you get an error similar to: https://stackoverflow.com/questions/71247918/parameter-specified-as-non-null-is-null-method-kotlin-o0-d-t-e
-    //This is kind of a workaround by navigating to the 'Saved' screen but expected
-    //behaviour is to return back to the Camera Screen.
-    navigation.navigate('Saved');    
-    
-  };
-
-  // if (hasPermission === null) return <View/>;
-  // if (hasPermission === false) return <Text>No access to camera</Text>
+  // const _handleAppStateChange = _nextAppState => {
+  //   navigation.navigate('Saved');    
+  // };
 
   const takePhoto = async () => {
     if (cameraRef) {
@@ -104,7 +71,7 @@ function CameraScreen( {navigation} ) {
     MediaLibrary.saveToLibraryAsync(r.uri);
     fetchPlantDetailsFromAPI(r.uri);
   }
-
+ 
   const fetchPlantDetailsFromAPI = async (uri) => {
     setIsWaiting(true);
     let result = null;
@@ -117,57 +84,52 @@ function CameraScreen( {navigation} ) {
         setErrorMsg(`Error reading string: ${error.message}`);
         setErrorModal(true);
       });
-
-    fetch(process.env.EXPO_LOOKUP_PLANT_URL, {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({'data' : result})
-      }).then(res => res.json())
-        .then(result => {
-          //console.log('PLANT API DATA', result.data);
-          setPlantApiResult(result.data);
-          setPlantName(result.data.suggestions[0].plant_name);
-          setPlantImageUrl(result.data.images[0].url);
-          setIsWaiting(false);
-          setModalVisible(true);
-        })
-        .catch(error => {
-          setIsWaiting(false);
-          setErrorMsg(`Error in plant lookup: ${error.message}`);
-          setErrorModal(true);
-        });
     
-    
+    try {
+      const lookUpPlant = httpsCallable(functions, 'lookUpPlant');
+      const response = await lookUpPlant({ 'data': result });
+      const plantData = response.data;
+      console.dir(plantData);
+      setPlantApiResult(plantData.result);
+      setPlantName(plantData.result.classification.suggestions[0].name);
+      setPlantImageUrl(plantData.input.images[0]);
+      setPlantDateTime(plantData.input.datetime);
+      setIsWaiting(false);
+      setModalVisible(true);
+    } catch (error) {
+      setIsWaiting(false);
+      setErrorMsg(`Error in plant lookup: ${error.message}`);
+      setErrorModal(true);
+    }
   }
 
 
   const saveIdentifiedPlantToDB = async () => {
-    
+    const auth = getAuth();
+    const user = auth.currentUser;
     const plantItemToDB = {
-      userEmail: loggedUserEmail,
+      userEmail: user.email,
       title: plantName,
-      description: plantApiResult.suggestions[0].plant_details.wiki_description.value,
-      imageUrl: plantApiResult.images[0].url,
-      plantInfoUrl: plantApiResult.suggestions[0].plant_details.url
+      description: plantApiResult.classification.suggestions[0]?.details?.description?.value,
+      imageUrl: plantImageUrl,
+      plantInfoUrl: plantApiResult.classification.suggestions[0]?.details?.description?.citation,
+      dateTime: plantDateTime
     }
 
-    fetch(process.env.EXPO_SAVEPLANT_URL, {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({ data : plantItemToDB})
-    }).then(res => res.json())
-      .then(result => {
-        setErrorMsg(`Saved ${result.data.title}`);
-        setErrorModal(true);
-      })
-      .catch(error => {
-        setErrorMsg(`Error saving plant: ${error.message}`);
-        setErrorModal(true);
-      });
+    try {
+      const savePlant = httpsCallable(functions, 'savePlant');
+      await savePlant({ 'data': plantItemToDB });
+      setIsWaiting(false);
+      setModalVisible(false);
+      setErrorMsg(`${plantName} saved`);
+      setErrorModal(true);
+    } catch (error) {
+      setModalVisible(false);
+      setErrorMsg(`Error Saving Plant: ${error.message}`);
+      setErrorModal(true);
+    }
 
-      setIsWaiting(!isWaiting);
-      setModalVisible(!modalVisible);
-  }
+  };
 
   const pickImage = async () => {
     setIsFocusedCam(false);
@@ -182,7 +144,7 @@ function CameraScreen( {navigation} ) {
     });
     setIsFocusedCam(true);
     if (result.cancelled) return;
-    fetchPlantDetailsFromAPI(result.uri);
+    fetchPlantDetailsFromAPI(result.assets[0].uri);
   }
 
  
