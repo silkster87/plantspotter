@@ -7,11 +7,12 @@
  * See a full list of supported triggers at https://firebase.google.com/docs/functions
  */
 
-const {onRequest} = require("firebase-functions/v2/https");
+const {onCall, HttpsError} = require("firebase-functions/v2/https");
 // const logger = require("firebase-functions/logger");
 const axios = require("axios");
 const {initializeApp} = require("firebase-admin/app");
 const {getFirestore} = require("firebase-admin/firestore");
+require("dotenv").config();
 
 // Create and deploy your first functions
 // https://firebase.google.com/docs/functions/get-started
@@ -23,39 +24,54 @@ const {getFirestore} = require("firebase-admin/firestore");
 
 initializeApp();
 
-exports.lookUpPlant = onRequest(async (request, response) => {
+exports.lookUpPlant = onCall(async (request) => {
   try {
-    const base64String = request.body.data;
+    const base64String = request.data.data;
+
+    if (typeof base64String !== "string") {
+      throw new HttpsError("invalid-argument",
+          "Data passed must be base64 string.");
+    }
+
+    if (!request.auth) {
+      throw new HttpsError("failed-precondition", "Not authenticated.");
+    }
+
     const data = {
       api_key: process.env.API_KEY,
-      images: [base64String],
-      modifiers: ["crops_fast", "similar_images", "health_all"],
-      plant_language: "en",
-      plant_details: ["common_names",
-        "url",
-        "name_authority",
-        "wiki_description",
-        "taxonomy",
-        "synonyms"],
+      images: [`data:image/jpg;base64,${base64String}`]};
+
+    const headers = {
+      "Content-Type": "application/json",
+      "Api-Key": process.env.API_KEY,
     };
 
-    const result = await axios.post(process.env.BASE_URL, data);
-    response.status(200);
-    response.json({data: result.data});
+    const result = await axios({
+      method: "post",
+      url: `${process.env.BASE_URL}?details=description`,
+      data,
+    }, {headers});
+
+    return result.data;
   } catch (error) {
-    response.send(error.message);
+    console.error("Error lookUpPlant:", error.message);
+    throw new HttpsError("internal", error.message);
   }
 });
 
-exports.savePlant = onRequest(async (request, response) => {
+exports.savePlant = onCall(async (request) => {
   try {
-    const plantItem = request.body.data;
-    const writeResult = await getFirestore()
+    const plantItem = request.data.data;
+
+    if (!request.auth) {
+      throw new HttpsError("failed-precondition", "Not authenticated.");
+    }
+    await getFirestore()
         .collection("plant-records")
         .add(plantItem);
 
-    response.json({data: writeResult});
+    return {data: plantItem};
   } catch (error) {
-    response.send(error.message);
+    throw new HttpsError("internal", error.message);
   }
 });
