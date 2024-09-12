@@ -1,21 +1,31 @@
 import {  Text, View, FlatList, Modal, Pressable, Image, ScrollView, TouchableOpacity, Linking } from 'react-native'
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { getAuth, type Auth } from 'firebase/auth';
 import { collection, query, where, getDocs, doc, deleteDoc } from 'firebase/firestore';
 import { db } from '../firebase';
 import { useFocusEffect } from '@react-navigation/native';
-import screenshotCamera from '../assets/screenshot_camera.jpg';
-import screenshotPhotoPlant from '../assets/screenshot_photoplant.jpg';
+import SelectDropdown from 'react-native-select-dropdown';
 import styles from '../styleSheets/SavedScreenStyle';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
 import { IPlantRecord } from '../interfaces';
 
 export default function SavedScreen() {
+  const ALPHABETICAL_ASC = 'Alphabetical (A-Z)';
+  const ALPHABETICAL_DESC = 'Alphabetical (Z-A)';
+  const DATE_ASC = 'Date (oldest first)';
+  const DATE_DESC = 'Date (recent first)';
+  const STORAGE_KEY = 'storage_key';
   const [plantsList, setPlantsList] = useState<IPlantRecord[]>([]);
   const [modalVisible, setModalVisible] = useState(false);
   const [plantItem, setPlantItem] = useState<IPlantRecord>();
   const [errorModal, setErrorModal] = useState<boolean>(false);
   const [errorMsg, setErrorMsg] = useState<string>('');
+  const [sortBy, setSortBy] = useState<string>(DATE_DESC);
   const auth: Auth = getAuth();
+  
+
+  const sortOptions = [DATE_DESC, DATE_ASC, ALPHABETICAL_ASC, ALPHABETICAL_DESC];
   
   //This is used to perform the getPlants again when navigating back to this screen
   useFocusEffect(
@@ -28,6 +38,50 @@ export default function SavedScreen() {
     }, [])
   );
 
+  const sortPlantsList = (sortType: string, plantsList: IPlantRecord[]): void => {
+    if (sortType === ALPHABETICAL_ASC) {
+      const newData = [ ...plantsList ].sort((a, b) => {
+        const textA = a.title.toLocaleUpperCase();
+        const textB = b.title.toLocaleUpperCase();
+        return (textA < textB) ? -1 : (textA > textB) ? 1 : 0;
+      });
+
+      setPlantsList(newData);
+    }
+
+    if (sortType === ALPHABETICAL_DESC) {
+      const newData = [ ...plantsList ].sort((a, b) => {
+        const textA = a.title.toLocaleUpperCase();
+        const textB = b.title.toLocaleUpperCase();
+        return (textA < textB) ? 1 : (textA > textB) ? -1 : 0;
+      });
+
+      setPlantsList(newData);
+    }
+    
+    if (sortType === DATE_ASC) {
+      // Sort by Date oldest first
+      const newData = [ ...plantsList ].sort((a, b) => {
+      const timeA = new Date(a.dateTime);
+      const timeB = new Date(b.dateTime);
+      return (timeA.valueOf() < timeB.valueOf()) ? -1 : (timeA.valueOf() > timeB.valueOf()) ? 1 : 0;
+      });
+
+      setPlantsList(newData);
+    }
+
+    if (sortType === DATE_DESC) {
+      // Sort by Date newest first
+      const newData = [ ...plantsList ].sort((a, b) => {
+      const timeA = new Date(a.dateTime);
+      const timeB = new Date(b.dateTime);
+      return (timeA.valueOf() < timeB.valueOf()) ? 1 : (timeA.valueOf() > timeB.valueOf()) ? -1 : 0;
+      });
+
+      setPlantsList(newData);
+    }
+  };
+
   async function getPlants(isActive: boolean) {
     try {
       const q = query(collection(db, 'plant-records'), where('userEmail', '==', auth?.currentUser?.email));
@@ -36,8 +90,10 @@ export default function SavedScreen() {
         const data: IPlantRecord[] = [];
         querySnapshot.forEach(doc => {
           data.push({ id: doc.id, ...doc.data() } as IPlantRecord)
-        })
-        setPlantsList(data);
+        });
+        const savedSortByValue = await AsyncStorage.getItem(STORAGE_KEY) || DATE_DESC;
+        sortPlantsList(savedSortByValue, data);
+        setSortBy(savedSortByValue);
       }
     } catch (error) {
       if (error instanceof Error) {
@@ -81,12 +137,41 @@ export default function SavedScreen() {
       onPress={() => showPlantDetails(item.id)}
     >
       <Image style={styles.image} source={{uri: item.imageUrl}}></Image>
-      <Text style={styles.text}>{item.title}</Text>
+      <View style={{ flexDirection: 'column', gap: 8 }}>
+        <Text style={styles.text}>{item.title}</Text>
+        <Text style={{ marginLeft: 15}}>{new Date(item.dateTime).toUTCString()}</Text>
+      </View> 
     </TouchableOpacity>
 
   return (
     
-    <View style = {styles.container}>
+    <View style={styles.container}>
+      <View style={{ ...styles.buttonsContainer, ...styles.sortViewContainer}}>
+        <Text style={styles.dropdownButtonTxtStyle}>Sort by: </Text>
+        <SelectDropdown
+          data={sortOptions}
+          onSelect={async (selectedItem) => {
+            setSortBy(selectedItem);
+            sortPlantsList(selectedItem, plantsList);
+            await AsyncStorage.setItem(STORAGE_KEY, selectedItem);
+          }}
+          renderButton={(_) => {
+            return (
+              <View style={styles.dropdownButtonStyle}>
+                <Text style={styles.dropdownItemTxtStyle}>{sortBy}</Text>
+              </View>
+            )
+          }}
+          renderItem={(item, index, isSelected) => {
+            return (
+              <View style={{...styles.dropdownItemStyle, ...(isSelected && {backgroundColor: '#D2D9DF'})}}>
+                <Text style={styles.dropdownItemTxtStyle}>{item}</Text>
+              </View>
+            );
+          }}
+          dropdownStyle={styles.dropdownMenuStyle}
+        />
+      </View>
       <Modal
         animationType='slide'
         transparent={true}
