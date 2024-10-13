@@ -1,7 +1,10 @@
 import { TextInput, View, Text, TouchableOpacity, ImageBackground } from 'react-native'
 import React, { useState, useEffect } from 'react'
 import { auth } from '../firebase'
-import { createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged } from 'firebase/auth';
+import {
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  onAuthStateChanged } from 'firebase/auth';
 import { useNavigation } from '@react-navigation/core';
 import image from '../assets/login_background.jpg';
 import SvgPlantLogo from '../assets/loginPlantIcon.js';

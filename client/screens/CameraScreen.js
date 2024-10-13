@@ -1,8 +1,9 @@
 import { Text, View, TouchableOpacity, Alert, Pressable, Modal, Image, ActivityIndicator, AppState } from 'react-native'
-import React , { useState, useEffect, useRef } from 'react'
-import { Camera } from 'expo-camera';
+import React , { useState, useRef } from 'react'
+import { CameraView, useCameraPermissions } from 'expo-camera';
 import { readAsStringAsync } from 'expo-file-system';
-import { getAuth, onAuthStateChanged } from 'firebase/auth';
+import { getAuth } from 'firebase/auth';
+import { getFunctions, httpsCallable } from 'firebase/functions'; 
 import { useIsFocused } from '@react-navigation/native';
 import cameraIcon from '../assets/camera_icon.png';
 import uploadIcon from '../assets/upload.png';
@@ -11,60 +12,39 @@ import * as MediaLibrary from 'expo-media-library';
 import * as ImagePicker from 'expo-image-picker';
 import COLORS from '../theme.js';
 
-import BASE_URL from '../baseUrl';
-
 function CameraScreen( {navigation} ) {
 
-  const [hasPermission, setHasPermission] = useState(null);
-  const [type, setType] = useState(Camera.Constants.Type.back);
+  // const [hasPermission, setHasPermission] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
   const [plantName, setPlantName] = useState('');
   const [plantImageUrl, setPlantImageUrl] = useState('');
   const [plantApiResult, setPlantApiResult] = useState({});
-  const [loggedUserEmail, setLoggedUserEmail] = useState(null);
+  const [plantDateTime, setPlantDateTime] = useState('');
   const [isFocusedCam, setIsFocusedCam] = useState(true);
   const [isWaiting, setIsWaiting] = useState(false);
+  const [errorModal, setErrorModal] = useState(false);
+  const [errorMsg, setErrorMsg] = useState('');
   const cameraRef = useRef(null);
   const isFocused = useIsFocused();
-  
+  const [permission, requestPermission] = useCameraPermissions();
+  const [permissionResponse, requestPermissionMedia] = MediaLibrary.usePermissions();
+  const functions = getFunctions();
 
-  useEffect(() => {
-    (async () => {
-      AppState.addEventListener('change', _handleAppStateChange);
+  if (!permission) return <View />
 
-      const { status } = await Camera.requestCameraPermissionsAsync();
-      setHasPermission(status === 'granted');
+  if (!permission.granted) {
+    return (
+      <View style={styles.container}>
+        <Text style={styles.message}>We need your permission to show the camera</Text>
+        <Button onPress={requestPermission} title="grant permission" />
+      </View>
+    ); 
+  }
 
-      const auth = getAuth();
-      onAuthStateChanged(auth, (user) => {
-        if (user){
-          setLoggedUserEmail(user.email);
-        }
-      });
 
-      return () => {
-        AppState.remove('change', _handleAppStateChange);
-      }
-      
-    })();
-  }, []);
-
-  const _handleAppStateChange = nextAppState => {
-    // if (appState.current.match(/inactive|background/)) {
-    //   navigation.navigate('Saved');
-    // }
-    // appState.current = nextAppState;
-    
-    //FIX ME - if the user uses the camera and then turns phone/app off and on again
-    //you get an error similar to: https://stackoverflow.com/questions/71247918/parameter-specified-as-non-null-is-null-method-kotlin-o0-d-t-e
-    //This is kind of a workaround by navigating to the 'Saved' screen but expected
-    //behaviour is to return back to the Camera Screen.
-    navigation.navigate('Saved');    
-    
-  };
-
-  if (hasPermission === null) return <View/>;
-  if (hasPermission === false) return <Text>No access to camera</Text>
+  // const _handleAppStateChange = _nextAppState => {
+  //   navigation.navigate('Saved');    
+  // };
 
   const takePhoto = async () => {
     if (cameraRef) {
@@ -76,67 +56,79 @@ function CameraScreen( {navigation} ) {
         });
         return photo;
       } catch (error) {
-        console.error(error);
+        setErrorMsg(error.message);
+        setErrorModal(true);
       }
     }
   }
 
   const identifyPlantFromPhoto = async () => {
     const r = await takePhoto();
+    if (permissionResponse.status !== 'granted') {
+      await requestPermissionMedia();
+    }
     MediaLibrary.saveToLibraryAsync(r.uri);
     fetchPlantDetailsFromAPI(r.uri);
   }
-
+ 
   const fetchPlantDetailsFromAPI = async (uri) => {
-    setIsWaiting(!isWaiting);
+    setIsWaiting(true);
     let result = null;
 
     await readAsStringAsync(uri, {encoding: 'base64'})
       .then((response) => {
         result = response;
       })
-      .catch((error) => console.error('ERROR READING STRING: ', error.message));
-
-    fetch(`${BASE_URL}/plantLookUp`, {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({'data' : result})
-      }).then(res => res.json())
-        .then(result => {
-          //console.log('PLANT API DATA', result.data);
-          setPlantApiResult(result.data);
-          setPlantName(result.data.suggestions[0].plant_name);
-          setPlantImageUrl(result.data.images[0].url);
-          setIsWaiting(!isWaiting);
-          setModalVisible(true);
-        })
-        .catch(error => Alert.alert('ERROR IN PLANT LOOK UP', error.message));
+      .catch((error) => {
+        setErrorMsg(`Error reading string: ${error.message}`);
+        setErrorModal(true);
+      });
+    
+    try {
+      const lookUpPlant = httpsCallable(functions, 'lookUpPlant');
+      const response = await lookUpPlant({ 'data': result });
+      const plantData = response.data;
+      console.dir(plantData);
+      setPlantApiResult(plantData.result);
+      setPlantName(plantData.result.classification.suggestions[0].name);
+      setPlantImageUrl(plantData.input.images[0]);
+      setPlantDateTime(plantData.input.datetime);
+      setIsWaiting(false);
+      setModalVisible(true);
+    } catch (error) {
+      setIsWaiting(false);
+      setErrorMsg(`Error in plant lookup: ${error.message}`);
+      setErrorModal(true);
+    }
   }
 
 
   const saveIdentifiedPlantToDB = async () => {
-    
+    const auth = getAuth();
+    const user = auth.currentUser;
     const plantItemToDB = {
-      userEmail: loggedUserEmail,
+      userEmail: user.email,
       title: plantName,
-      description: plantApiResult.suggestions[0].plant_details.wiki_description.value,
-      imageUrl: plantApiResult.images[0].url,
-      plantInfoUrl: plantApiResult.suggestions[0].plant_details.url
+      description: plantApiResult.classification.suggestions[0]?.details?.description?.value,
+      imageUrl: plantImageUrl,
+      plantInfoUrl: plantApiResult.classification.suggestions[0]?.details?.description?.citation,
+      dateTime: plantDateTime
     }
 
-    fetch(`${BASE_URL}/save`, {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({ data : plantItemToDB})
-    }).then(res => res.json())
-      .then(result => {
-        console.log('Saved', result.data.title);
-      })
-      .catch(error => console.error('ERROR SAVING REQUEST: ' , error))
+    try {
+      const savePlant = httpsCallable(functions, 'savePlant');
+      await savePlant({ 'data': plantItemToDB });
+      setIsWaiting(false);
+      setModalVisible(false);
+      setErrorMsg(`${plantName} saved`);
+      setErrorModal(true);
+    } catch (error) {
+      setModalVisible(false);
+      setErrorMsg(`Error Saving Plant: ${error.message}`);
+      setErrorModal(true);
+    }
 
-      setIsWaiting(!isWaiting);
-      setModalVisible(!modalVisible);
-  }
+  };
 
   const pickImage = async () => {
     setIsFocusedCam(false);
@@ -151,16 +143,14 @@ function CameraScreen( {navigation} ) {
     });
     setIsFocusedCam(true);
     if (result.cancelled) return;
-    fetchPlantDetailsFromAPI(result.uri);
+    fetchPlantDetailsFromAPI(result.assets[0].uri);
   }
 
  
   
 if (isFocusedCam) {
   return (
-    
     <View style={styles.container}>
-
        <Modal
          style={styles.centeredView}
          animationType="slide"
@@ -198,7 +188,7 @@ if (isFocusedCam) {
            </View>
          </View>
        </Modal>
-      { isFocused && <Camera style={styles.camera} type={type} ref={cameraRef}>
+      { isFocused && <CameraView style={styles.camera} facing="back" ref={cameraRef}>
         
        <View style={styles.buttonContainer}>
        
@@ -220,8 +210,34 @@ if (isFocusedCam) {
            />
          </TouchableOpacity>
        </View>
-     </Camera> }
-     
+     </CameraView> }
+     <Modal
+        animationType='slide'
+        transparent
+        visible={errorModal}
+        onRequestClose={() => {
+          setErrorMsg('');
+          setErrorModal(false);
+        }}
+      >
+        <View style={{ ...styles.centeredView, justifyContent: 'center' }}>
+          <View style={styles.modalView}>
+            <Text>
+              {errorMsg}
+            </Text>
+            <View>
+              <Pressable
+                style={styles.buttonClose}
+                onPress={() => {
+                  setErrorMsg('');
+                  setErrorModal(false);
+                }}>
+                  <Text style={styles.textStyle}>OK</Text>
+              </Pressable>
+            </View>
+          </View>
+        </View>
+      </Modal>
    </View> 
  );
 } else {

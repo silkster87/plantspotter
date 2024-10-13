@@ -5,6 +5,22 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
+    "plugins": [
+      "@react-native-google-signin/google-signin",
+      [ "expo-camera", { "cameraPermission": "Allow PlantSpotter to access your camera" }],
+      ["expo-media-library",
+      {
+        "photosPermission": "Allow PlantSpotter to access your photos.",
+        "savePhotosPermission": "Allow PlantSpotter to save photos.",
+        "isAccessMediaLocationEnabled": true
+      }],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "The app accesses your photos to upload and identify plants."
+        }
+      ]
+    ],
     "splash": {
       "image": "./assets/splash.png",
       "resizeMode": "contain",
