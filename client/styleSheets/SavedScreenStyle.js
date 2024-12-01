@@ -10,6 +10,7 @@ const styles = StyleSheet.create({
     marginLeft: 'auto',
     marginRight: 'auto',
     borderRadius: 10,
+    
   },
   screenshotPlant: {
     width: '70%',
@@ -19,6 +20,8 @@ const styles = StyleSheet.create({
     marginRight: 'auto',
     marginTop: 5,
     borderRadius: 10,
+    
+
   },
   textNoSavedPlants: {
     color: 'black',
@@ -30,6 +33,7 @@ const styles = StyleSheet.create({
   centeredView: {
     flex: 1,
     marginTop: 22,
+    
   },
   modalView: {
     margin: 20,
@@ -49,15 +53,15 @@ const styles = StyleSheet.create({
   modalText: {
     marginBottom: 15,
     fontSize: 24,
-    color: COLORS.modalClose,
+    color: COLORS.calpolygreen,
     fontWeight: 'bold',
-    textDecorationLine: 'underline'
   },
   modalImage: {
     width: 200,
     height: 200,
     resizeMode: 'cover',
-    marginBottom: 20
+    marginBottom: 20,
+    borderRadius: 10
   },
   description: {
     fontSize: 15
@@ -71,7 +75,7 @@ const styles = StyleSheet.create({
   },
   buttonClose: {
     width: 100,
-    backgroundColor: COLORS.modalClose,
+    backgroundColor: COLORS.britishracinggreen,
     borderRadius: 5,
     padding: 5,
     justifyContent: 'center',
@@ -88,16 +92,23 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     marginBottom: 140,
+    
+
+    
+  
   },
   scrollViewContainer: {
     flex: 1,
+    backgroundColor: COLORS.calpolygreen
+    
   },
   image: {
     height: 100,
     width: 100,
     resizeMode: 'cover',
     marginBottom: 5,
-    borderRadius: 5
+    borderRadius: 5,
+    
   },
   button: {  
     flexDirection: 'row',

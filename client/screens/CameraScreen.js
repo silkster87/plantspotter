@@ -1,5 +1,14 @@
-import { Text, View, TouchableOpacity, Alert, Pressable, Modal, Image, ActivityIndicator, AppState } from 'react-native'
-import React , { useState, useRef } from 'react'
+import {
+  Text,
+  Button,
+  View,
+  TouchableOpacity,
+  Pressable,
+  Modal,
+  Image,
+  ActivityIndicator } from 'react-native';
+import React , { useEffect, useFocusEffect, useState, useRef } from 'react';
+import * as Location from 'expo-location';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { readAsStringAsync } from 'expo-file-system';
 import { getAuth } from 'firebase/auth';
@@ -28,7 +37,27 @@ function CameraScreen( {navigation} ) {
   const isFocused = useIsFocused();
   const [permission, requestPermission] = useCameraPermissions();
   const [permissionResponse, requestPermissionMedia] = MediaLibrary.usePermissions();
+  const [userLocation, setUserLocation] = useState(null);
   const functions = getFunctions();
+
+  useEffect(() => {
+    (async () => {
+      let { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== 'granted') {
+        setErrorMsg('Permission to access location was denied');
+        setErrorModal(true);
+        return;
+      }
+
+      let location = await Location.getCurrentPositionAsync({});
+      console.log(location);
+      if (!userLocation) setUserLocation(location.coords);
+    })()
+  }, []);
+
+  useEffect(() => {
+    if (Object.keys(plantApiResult).length) console.log(plantApiResult);
+  }, [plantApiResult]);
 
   if (!permission) return <View />
 
@@ -39,36 +68,6 @@ function CameraScreen( {navigation} ) {
         <Button onPress={requestPermission} title="grant permission" />
       </View>
     ); 
-  }
-
-
-  // const _handleAppStateChange = _nextAppState => {
-  //   navigation.navigate('Saved');    
-  // };
-
-  const takePhoto = async () => {
-    if (cameraRef) {
-      try {
-        let photo = await cameraRef.current.takePictureAsync({
-          allowsEditing: true,
-          quality: 0.5,
-          aspect:[4,3]
-        });
-        return photo;
-      } catch (error) {
-        setErrorMsg(error.message);
-        setErrorModal(true);
-      }
-    }
-  }
-
-  const identifyPlantFromPhoto = async () => {
-    const r = await takePhoto();
-    if (permissionResponse.status !== 'granted') {
-      await requestPermissionMedia();
-    }
-    MediaLibrary.saveToLibraryAsync(r.uri);
-    fetchPlantDetailsFromAPI(r.uri);
   }
  
   const fetchPlantDetailsFromAPI = async (uri) => {
@@ -82,15 +81,19 @@ function CameraScreen( {navigation} ) {
       .catch((error) => {
         setErrorMsg(`Error reading string: ${error.message}`);
         setErrorModal(true);
+        setIsWaiting(false);
       });
     
     try {
       const lookUpPlant = httpsCallable(functions, 'lookUpPlant');
-      const response = await lookUpPlant({ 'data': result });
+      const response = await lookUpPlant({
+        'data': result,
+        latitude: userLocation?.latitude,
+        longitude: userLocation?.longitude
+      });
       const plantData = response.data;
-      console.dir(plantData);
-      setPlantApiResult(plantData.result);
-      setPlantName(plantData.result.classification.suggestions[0].name);
+      setPlantApiResult(plantData?.result);
+      setPlantName(plantData?.result?.classification?.suggestions[0]?.details?.common_names[0]);
       setPlantImageUrl(plantData.input.images[0]);
       setPlantDateTime(plantData.input.datetime);
       setIsWaiting(false);
@@ -102,20 +105,52 @@ function CameraScreen( {navigation} ) {
     }
   }
 
+  const takePhoto = async () => {
+    if (cameraRef) {
+      try {
+        setIsWaiting(true);
+        let photo = await cameraRef.current.takePictureAsync({
+          allowsEditing: true,
+          quality: 0.5,
+          aspect:[4,3]
+        });
+        setIsWaiting(false);
+        return photo;
+      } catch (error) {
+        setErrorMsg(error.message);
+        setErrorModal(true);
+        setIsWaiting(false);
+      }
+    }
+  }
+
+  const identifyPlantFromPhoto = async () => {
+    if (permissionResponse.status !== 'granted') {
+      await requestPermissionMedia();
+    }
+    const r = await takePhoto();
+    MediaLibrary.saveToLibraryAsync(r.uri);
+    fetchPlantDetailsFromAPI(r.uri);
+  }
+
 
   const saveIdentifiedPlantToDB = async () => {
     const auth = getAuth();
     const user = auth.currentUser;
+    let location = await Location.getCurrentPositionAsync({});
     const plantItemToDB = {
       userEmail: user.email,
       title: plantName,
       description: plantApiResult.classification.suggestions[0]?.details?.description?.value,
       imageUrl: plantImageUrl,
       plantInfoUrl: plantApiResult.classification.suggestions[0]?.details?.description?.citation,
-      dateTime: plantDateTime
+      dateTime: plantDateTime,
+      latitude: location.coords.latitude,
+      longitude: location.coords.longitude
     }
 
     try {
+      setIsWaiting(true);
       const savePlant = httpsCallable(functions, 'savePlant');
       await savePlant({ 'data': plantItemToDB });
       setIsWaiting(false);
@@ -126,6 +161,7 @@ function CameraScreen( {navigation} ) {
       setModalVisible(false);
       setErrorMsg(`Error Saving Plant: ${error.message}`);
       setErrorModal(true);
+      setIsWaiting(false);
     }
 
   };

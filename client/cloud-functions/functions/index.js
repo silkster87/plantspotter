@@ -27,6 +27,8 @@ initializeApp();
 exports.lookUpPlant = onCall(async (request) => {
   try {
     const base64String = request.data.data;
+    const latitude = request.data.latitude;
+    const longitude = request.data.longitude;
 
     if (typeof base64String !== "string") {
       throw new HttpsError("invalid-argument",
@@ -39,7 +41,10 @@ exports.lookUpPlant = onCall(async (request) => {
 
     const data = {
       api_key: process.env.API_KEY,
-      images: [`data:image/jpg;base64,${base64String}`]};
+      images: [`data:image/jpg;base64,${base64String}`],
+      ...(latitude && {latitude}),
+      ...(longitude && {longitude}),
+    };
 
     const headers = {
       "Content-Type": "application/json",
@@ -48,7 +53,7 @@ exports.lookUpPlant = onCall(async (request) => {
 
     const result = await axios({
       method: "post",
-      url: `${process.env.BASE_URL}?details=description`,
+      url: `${process.env.BASE_URL}?details=description,common_names`,
       data,
     }, {headers});
 
