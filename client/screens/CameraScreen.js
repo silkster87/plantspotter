@@ -1,5 +1,13 @@
-import { Text, View, TouchableOpacity, Alert, Pressable, Modal, Image, ActivityIndicator, AppState } from 'react-native'
-import React , { useState, useRef } from 'react'
+import {
+  Text,
+  View,
+  TouchableOpacity,
+  Pressable,
+  Modal,
+  Image,
+  ActivityIndicator } from 'react-native';
+import React , { useEffect, useFocusEffect, useState, useRef } from 'react';
+import * as Location from 'expo-location';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { readAsStringAsync } from 'expo-file-system';
 import { getAuth } from 'firebase/auth';
@@ -30,6 +38,20 @@ function CameraScreen( {navigation} ) {
   const [permissionResponse, requestPermissionMedia] = MediaLibrary.usePermissions();
   const functions = getFunctions();
 
+  useEffect(() => {
+    (async () => {
+      let { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== 'granted') {
+        setErrorMsg('Permission to access location was denied');
+        setErrorModal(true);
+        return;
+      }
+
+      let location = await Location.getCurrentPositionAsync({});
+      console.log(location);
+    })()
+  });
+
   if (!permission) return <View />
 
   if (!permission.granted) {
@@ -45,6 +67,8 @@ function CameraScreen( {navigation} ) {
   // const _handleAppStateChange = _nextAppState => {
   //   navigation.navigate('Saved');    
   // };
+
+  
 
   const takePhoto = async () => {
     if (cameraRef) {
@@ -106,13 +130,16 @@ function CameraScreen( {navigation} ) {
   const saveIdentifiedPlantToDB = async () => {
     const auth = getAuth();
     const user = auth.currentUser;
+    let location = await Location.getCurrentPositionAsync({});
     const plantItemToDB = {
       userEmail: user.email,
       title: plantName,
       description: plantApiResult.classification.suggestions[0]?.details?.description?.value,
       imageUrl: plantImageUrl,
       plantInfoUrl: plantApiResult.classification.suggestions[0]?.details?.description?.citation,
-      dateTime: plantDateTime
+      dateTime: plantDateTime,
+      latitude: location.coords.latitude,
+      longitude: location.coords.longitude
     }
 
     try {

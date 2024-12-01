@@ -19,6 +19,12 @@
         {
           "photosPermission": "The app accesses your photos to upload and identify plants."
         }
+      ],
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "Allow PlantSpotter to use your location."
+        }
       ]
     ],
     "splash": {
